@@ -1,10 +1,48 @@
 # Qwen3.5-4B 小规模多模态评测集
 
-> **Public repository notice:** GPQA question/answer files are intentionally excluded from the public Git history, as are `all.jsonl` and `smoke_200.jsonl` because they contain embedded GPQA rows. Authorized users should reconstruct those local files from the locked source using the build scripts. Generated ZIP bundles are also excluded because they contain the complete local evaluation data and exceed GitHub's normal single-file limit.
+本项目包含一套 1,202 题的 mini 评测集、固定的 200 题快速检查子集，以及可记录思考轨迹、工具轨迹、逐题得分和 bad case 的评测 Harness。仓库中的数据文件不包含任何模型跑分。
 
-本项目已准备评测数据和可执行评测程序；仓库中的现成归档不包含任何模型跑分。主套件为 **1,202 题**，另有其内部固定的 **200 题快速检查子集**。
+> **公开仓库说明：** 为遵守 GPQA 的防泄露要求，Git 历史不包含 GPQA 的题目与答案，也不包含嵌入 GPQA 行的 `all.jsonl`、`smoke_200.jsonl` 和完整 ZIP。获得 GPQA 数据授权后，按锁定源版本在本地重建这些文件；不要把它们提交到公开仓库。
 
-评测程序现已包含在项目中。它支持 Qwen3.5-4B 的 vLLM/SGLang OpenAI 兼容接口、显式思考轨迹与最终答案记录、16K 长思考告警和 32K 输出硬限制、循环与答后回退诊断、断点续跑、Docker/Podman 代码沙箱、逐数据集得分和 badcase 导出。Harness 在工具注册层执行固定的数据集权限：只有 MultiModalQA 和 GPQA 注册网页搜索、图片搜索与页面访问；其他任务最多获得离线视觉或沙箱 Python 工具。联网题逐题标为 `open_book_agentic`，不能与闭卷成绩混报。完整使用方法见 [EVALUATION.md](EVALUATION.md)。
+## 当前部署方案
+
+| 项目 | 固定配置 |
+|---|---|
+| 模型 | `Qwen/Qwen3.5-4B` |
+| 推理 | SGLang 0.5.19 + DSpark；不使用 DFlash2 |
+| Python / PyTorch / CUDA runtime | Python 3.11 / PyTorch 2.13.0 / CUDA 13.0 |
+| DSpark draft | `shanjiaz/qwen3_5_4b_perfectblend_regen_dspark` |
+| 单卡验收 | 1 × RTX 4090 48GB，32K context，并发 1，关闭 CUDA graph |
+| 正式评测 | 2 × RTX 4090 48GB，DP=2、TP=1，先验收 64K context，总并发 4 |
+| 输出限制 | 16,384 tokens 标记长思考；32,768 tokens 硬上限并记录截断 |
+
+Python 包统一由 `uv` 管理。单卡 4090 只用于确认依赖、模型、多模态输入和 DSpark 路径全部可用；正式跑分再换双卡。完整原理和验收产物见 [DSPARK_SGLANG_DEPLOYMENT.md](DSPARK_SGLANG_DEPLOYMENT.md)。
+
+## 快速开始
+
+在单卡 RTX 4090 48GB 机器上执行：
+
+```bash
+cd /root/autodl-tmp/shuabang
+export HF_HOME=/root/autodl-tmp/huggingface
+CUDA_VISIBLE_DEVICES=0 bash scripts/validate_qwen35_4b_sglang_dspark_4090.sh
+```
+
+只有 `runs/dspark-4090-install-validation/PASS.txt` 生成，且 `validation.json` 记录 `spec_verify_ct > 0` 和 `spec_accept_length >= 1.01`，才算单卡环境验收通过。换到双卡机器后启动正式服务：
+
+```bash
+CUDA_VISIBLE_DEVICES=0,1 bash scripts/launch_qwen35_4b_sglang_dspark_dual.sh
+```
+
+完成私有 GPQA 与汇总文件重建后，在另一个终端启动全量评测：
+
+```bash
+API_BASE=http://127.0.0.1:8000/v1 \
+CONCURRENCY=4 TOOLS=agentic \
+  bash scripts/run_full_eval.sh runs/qwen35-4b-dspark-baseline
+```
+
+Harness 在工具注册层固定权限：只有 MultiModalQA 和 GPQA 注册网页搜索、图片搜索与页面访问；其他任务最多获得离线视觉或沙箱 Python。联网题标为 `open_book_agentic`，不能与闭卷成绩混报。评测支持显式思考与最终答案记录、循环和答后回退诊断、断点续跑、Docker/Podman 代码沙箱、逐数据集得分与 bad case 导出。完整参数见 [EVALUATION.md](EVALUATION.md)。
 
 | 能力 | 来源 | 数量 | 选择方式 |
 |---|---|---:|---|
@@ -19,8 +57,8 @@ MathVision testmini 和 GPQA Diamond 使用对应官方子集的全部题目；�
 
 ## 使用入口
 
-- `data/mini_eval_v1/questions/all.jsonl`：1,202 道题的模型输入数据。
-- `data/mini_eval_v1/questions/smoke_200.jsonl`：200 道快速检查题，来自主套件，不是独立测试集。
+- `data/mini_eval_v1/questions/all.jsonl`：1,202 道题的模型输入数据；含 GPQA，仅在完成私有重建后存在。
+- `data/mini_eval_v1/questions/smoke_200.jsonl`：200 道快速检查题，来自主套件，不是独立测试集；含 GPQA，仅在完成私有重建后存在。
 - `data/mini_eval_v1/questions/<benchmark>.jsonl`：按能力分开的题目。
 - `data/mini_eval_v1/references/<benchmark>.jsonl`：通过 `id` 关联的答案、测试入口和原始记录。
 - `data/mini_eval_v1/assets/`：实际图片文件，保持原始分辨率，不重新编码。
@@ -31,7 +69,7 @@ MathVision testmini 和 GPQA Diamond 使用对应官方子集的全部题目；�
 - `data/mini_eval_v1/checksums.json`：数据文件的 SHA-256 和字节数。
 - `data/mini_eval_v1/validation_report.json`：执行校验脚本后生成的结果。
 
-复制整个 `data/mini_eval_v1` 目录即可搬到 A100 服务器。内部路径统一使用相对于这个目录的路径，不依赖当前 Windows 盘符。
+完成私有文件重建后，复制整个 `data/mini_eval_v1` 目录即可搬到评测服务器。内部路径统一使用相对于这个目录的路径，不依赖当前 Windows 盘符。
 
 ## 数据格式
 
@@ -64,7 +102,7 @@ import json
 from pathlib import Path
 
 root = Path("data/mini_eval_v1")
-with (root / "questions/smoke_200.jsonl").open(encoding="utf-8") as f:
+with (root / "questions/mathvision.jsonl").open(encoding="utf-8") as f:
     rows = [json.loads(line) for line in f]
 
 first = rows[0]

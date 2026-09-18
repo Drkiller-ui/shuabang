@@ -1,2 +1,4 @@
-# Install a current vLLM nightly separately as described in EVALUATION.md.
 -r requirements-eval.txt
+sglang==0.5.19
+torch==2.13.0
+huggingface-hub>=0.34

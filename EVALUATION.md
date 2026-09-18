@@ -1,6 +1,6 @@
 # Qwen3.5-4B mini 评测程序
 
-评测程序直接读取 `data/mini_eval_v1`，通过 vLLM 或 SGLang 的 OpenAI 兼容接口请求模型。每一道题都会保存输入摘要、模型显式输出的思考内容、最终答案、原始 API 响应、token 用量、耗时、评分细节和错误信息。模型输出超过 16,384 tokens 会标为长思考，32,768 tokens 为硬上限并截断。程序支持断点续跑，已成功生成且评分配置未改变的题目不会重复执行。
+评测程序直接读取 `data/mini_eval_v1`，通过 OpenAI 兼容接口请求模型；当前固定部署为 SGLang 0.5.19 + DSpark。每一道题都会保存输入摘要、模型显式输出的思考内容、最终答案、原始 API 响应、token 用量、耗时、评分细节和错误信息。模型输出超过 16,384 tokens 会标为长思考，32,768 tokens 为硬上限并截断。程序支持断点续跑，已成功生成且评分配置未改变的题目不会重复执行。
 
 ## 推荐机器
 
@@ -12,7 +12,7 @@
 bash scripts/validate_qwen35_4b_sglang_dspark_4090.sh
 ```
 
-该入口用 `uv` 创建 `.venv-dspark`，精确安装 SGLang 0.5.19，验证 CUDA 13.0、单张 48GB Ada GPU、DSpark CLI 和 checkpoint 配置，并锁定 target/draft commit。随后完整加载模型并检查文本、图片及 `spec_verify_ct`/`spec_accept_length`。只有全部通过才生成 `runs/dspark-4090-install-validation/PASS.txt`。完整步骤、上游 Qwen3.5 最后一层捕获问题及临时补丁说明见 [DSPARK_SGLANG_SINGLE_GPU.md](DSPARK_SGLANG_SINGLE_GPU.md)。容器运行时由操作系统提供，不归 `uv` 管理。
+该入口用 `uv` 创建 `.venv-dspark`，精确安装 SGLang 0.5.19 和 PyTorch 2.13.0，验证 CUDA 13.0、单张 48GB Ada GPU、DSpark CLI 和 checkpoint 配置，并锁定 target/draft commit。随后完整加载模型并检查文本、图片及 `spec_verify_ct`/`spec_accept_length`。只有全部通过才生成 `runs/dspark-4090-install-validation/PASS.txt`。完整步骤、上游 Qwen3.5 最后一层捕获问题及临时补丁说明见 [DSPARK_SGLANG_DEPLOYMENT.md](DSPARK_SGLANG_DEPLOYMENT.md)。容器运行时由操作系统提供，不归 `uv` 管理。
 
 ## 启动模型
 
@@ -34,7 +34,7 @@ MAX_RUNNING_REQUESTS=4 DSPARK_BLOCK_SIZE=8 DISABLE_CUDA_GRAPH=0 \
 
 启动脚本允许每题最多输入 16 张图片。当前 MultiModalQA 子集中单题最多有 15 张官方候选图片；不要把 `--limit-mm-per-prompt` 调到 15 以下。
 
-如果已有 SGLang 或其他 OpenAI 兼容服务，可以跳过启动脚本，在运行评测时设置 `API_BASE` 和 `MODEL`。保留的 `launch_qwen35_4b_vllm.sh` 可用于无投机解码对照实验；DFlash 脚本仅作为历史配置保留，不参与当前方案。
+当前仓库只维护 SGLang + DSpark 启动路径。若需比较训练前后效果，两次评测应使用相同的 SGLang、DSpark draft、服务参数和 Harness 配置，仅替换 target checkpoint。已有兼容服务时可跳过启动脚本，在运行评测时设置 `API_BASE` 和 `MODEL`。
 
 ## 完整评测
 
@@ -44,7 +44,7 @@ MAX_RUNNING_REQUESTS=4 DSPARK_BLOCK_SIZE=8 DISABLE_CUDA_GRAPH=0 \
 bash scripts/run_full_eval.sh runs/qwen35-4b-mini-v1
 ```
 
-脚本顺序执行生成、评分和报告。任何阶段中断后，重复同一命令即可续跑。先做冒烟测试时可以限制每个数据集的题数：
+脚本顺序执行生成、评分和报告。公开仓库不含 GPQA 及含 GPQA 的汇总文件；运行 `BENCHMARKS=all` 前必须先完成私有重建。缺文件时脚本会列出具体路径并停止，避免误报不完整结果。任何阶段中断后，重复同一命令即可续跑。先做冒烟测试时可以限制每个数据集的题数：
 
 ```bash
 python -m mmeval infer \

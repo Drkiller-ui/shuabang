@@ -7,11 +7,12 @@ cd "$PROJECT_ROOT"
 PYTHON_VERSION="${PYTHON_VERSION:-3.11}"
 VENV_DIR="${VENV_DIR:-.venv-dspark}"
 SGLANG_VERSION="${SGLANG_VERSION:-0.5.19}"
+EXPECTED_TORCH_VERSION="${EXPECTED_TORCH_VERSION:-2.13.0}"
 EXPECTED_TORCH_CUDA="${EXPECTED_TORCH_CUDA:-13.0}"
 MIN_GPU_MEMORY_GIB="${MIN_GPU_MEMORY_GIB:-40}"
 EXPECTED_COMPUTE_CAPABILITY="${EXPECTED_COMPUTE_CAPABILITY:-8.9}"
 EXPECTED_GPU_NAME_SUBSTRING="${EXPECTED_GPU_NAME_SUBSTRING:-4090}"
-export EXPECTED_TORCH_CUDA MIN_GPU_MEMORY_GIB EXPECTED_COMPUTE_CAPABILITY EXPECTED_GPU_NAME_SUBSTRING SGLANG_VERSION
+export EXPECTED_TORCH_VERSION EXPECTED_TORCH_CUDA MIN_GPU_MEMORY_GIB EXPECTED_COMPUTE_CAPABILITY EXPECTED_GPU_NAME_SUBSTRING SGLANG_VERSION
 export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0}"
 
 if ! command -v uv >/dev/null 2>&1; then
@@ -20,11 +21,9 @@ if ! command -v uv >/dev/null 2>&1; then
 fi
 
 uv venv --python "$PYTHON_VERSION" "$VENV_DIR"
-uv pip install --python "$VENV_DIR/bin/python" -r requirements-eval.txt
 uv pip install --python "$VENV_DIR/bin/python" --upgrade \
   --prerelease=allow \
-  "sglang==${SGLANG_VERSION}" \
-  "huggingface-hub>=0.34"
+  -r requirements-server.txt
 
 "$VENV_DIR/bin/python" - <<'PY'
 import os
@@ -39,6 +38,10 @@ if actual_sglang != expected_sglang:
 print(f"torch={torch.__version__}")
 print(f"torch CUDA runtime={torch.version.cuda}")
 print(f"CUDA available={torch.cuda.is_available()}")
+expected_torch = os.environ["EXPECTED_TORCH_VERSION"]
+actual_torch = importlib.metadata.version("torch")
+if actual_torch != expected_torch:
+    raise SystemExit(f"Expected PyTorch {expected_torch}, got {actual_torch}")
 expected = os.environ["EXPECTED_TORCH_CUDA"]
 if torch.version.cuda != expected:
     raise SystemExit(f"Expected a cu{expected.replace('.', '')} PyTorch wheel, got {torch.version.cuda!r}")

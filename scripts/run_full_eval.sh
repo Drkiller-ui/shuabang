@@ -18,6 +18,28 @@ MAX_TOOL_TURNS="${MAX_TOOL_TURNS:-8}"
 TOOL_EXECUTOR="${TOOL_EXECUTOR:-docker}"
 SCORE_EXECUTOR="${SCORE_EXECUTOR:-$TOOL_EXECUTOR}"
 
+if [[ "$BENCHMARKS" == "all" ]]; then
+  REQUIRED_BENCHMARKS=(mathvision mmmu mmlu_pro livecodebench multimodalqa gpqa)
+else
+  IFS=',' read -r -a REQUIRED_BENCHMARKS <<< "$BENCHMARKS"
+fi
+
+MISSING_DATA=()
+for benchmark in "${REQUIRED_BENCHMARKS[@]}"; do
+  benchmark="${benchmark//[[:space:]]/}"
+  [[ -z "$benchmark" ]] && continue
+  for kind in questions references; do
+    path="data/mini_eval_v1/$kind/$benchmark.jsonl"
+    [[ -f "$path" ]] || MISSING_DATA+=("$path")
+  done
+done
+if (( ${#MISSING_DATA[@]} > 0 )); then
+  echo "Cannot start evaluation: required dataset files are missing:" >&2
+  printf '  - %s\n' "${MISSING_DATA[@]}" >&2
+  echo "The public repository excludes GPQA and aggregate files. Rebuild authorized private data before running the affected benchmarks." >&2
+  exit 2
+fi
+
 python -m mmeval infer \
   --run "$RUN_DIR" \
   --model "$MODEL" \

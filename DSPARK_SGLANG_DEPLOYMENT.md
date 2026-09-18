@@ -1,6 +1,6 @@
 # Qwen3.5-4B + DSpark + SGLang：单卡验收，双卡正式评测
 
-当前单张 RTX 4090 48GB 只用于环境验收：CUDA 13.0、Python 3.11、SGLang 0.5.19、Qwen3.5-4B target、公开 DSpark draft 和多模态请求都能工作。正式评测换成两张 RTX 4090 48GB，以 DP=2、TP=1 启动两个完整副本，使用 64K context；Harness 并发设为 4。DFlash2 不参与这套方案。
+当前单张 RTX 4090 48GB 只用于环境验收：CUDA 13.0、Python 3.11、PyTorch 2.13.0、SGLang 0.5.19、Qwen3.5-4B target、公开 DSpark draft 和多模态请求都能工作。正式评测换成两张 RTX 4090 48GB，以 DP=2、TP=1 启动两个完整副本，使用 64K context；Harness 并发设为 4。DFlash2 不参与这套方案。
 
 ## 一键安装与验收
 
@@ -15,7 +15,7 @@ bash scripts/validate_qwen35_4b_sglang_dspark_4090.sh
 脚本将依次完成：
 
 1. 创建 `.venv-dspark`，全部 Python 包由 `uv` 安装和管理。
-2. 验证当前只暴露一张 GPU、显存至少 40GiB、compute capability 为 8.9、PyTorch runtime 为 CUDA 13.0。
+2. 验证当前只暴露一张 GPU、显存至少 40GiB、compute capability 为 8.9、PyTorch 版本为 2.13.0 且 runtime 为 CUDA 13.0。
 3. 精确安装 SGLang 0.5.19 并运行项目的全部本地测试。
 4. 下载并检查 target/draft 的配置，将两者当前 revision 解析成完整 commit SHA 并写入锁文件，应用并验证 Qwen3.5 最后一层捕获补丁。
 5. 下载完整模型并以 32K context、并发 1、关闭 CUDA graph 的保守配置启动。

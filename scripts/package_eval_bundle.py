@@ -21,7 +21,7 @@ def main() -> None:
     files.extend(path for path in (ROOT / "scripts").glob("*.sh"))
     files.extend(path for path in (ROOT / "scripts").glob("*.py"))
     files.extend([
-        ROOT / "README.md", ROOT / "EVALUATION.md", ROOT / "DSPARK_SGLANG_SINGLE_GPU.md",
+        ROOT / "README.md", ROOT / "EVALUATION.md", ROOT / "DSPARK_SGLANG_DEPLOYMENT.md",
         ROOT / "requirements-eval.txt",
         ROOT / "requirements-server.txt", ROOT / "config/sources.lock.json",
         ROOT / ".dockerignore", ROOT / "THIRD_PARTY_NOTICES.md",
