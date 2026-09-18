@@ -1,0 +1,2 @@
+# Install a current vLLM nightly separately as described in EVALUATION.md.
+-r requirements-eval.txt

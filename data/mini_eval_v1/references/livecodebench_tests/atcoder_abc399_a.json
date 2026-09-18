@@ -1,0 +1,226 @@
+{
+  "public": [
+    {
+      "input": "6\nabcarc\nagcahc",
+      "output": "2",
+      "testtype": "stdin"
+    },
+    {
+      "input": "7\natcoder\ncontest",
+      "output": "7",
+      "testtype": "stdin"
+    },
+    {
+      "input": "8\nchokudai\nchokudai",
+      "output": "0",
+      "testtype": "stdin"
+    },
+    {
+      "input": "10\nvexknuampx\nvzxikuamlx",
+      "output": "4",
+      "testtype": "stdin"
+    }
+  ],
+  "private": [
+    {
+      "input": "9\nrqwrztgry\nwvwycopoj",
+      "output": "8\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "99\nchhfqqsvskmaofmrfsgzmklkispqfepipjmnuyrlfmnshdfiwzrijmgdprpvtorttbpezlyvtxgposxbtztyfvbpdbrdwnaxlwy\nchhfqqsvskmaofmrfsgzmkljispqfepipjmnuyrlfmechdfuwzrijmgdprpqtorttbpezlyvtxgposnetztbfvbpabrdwnaxlwk",
+      "output": "10\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "1\nh\nw",
+      "output": "1\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "96\nxpqvnmeiqqxfhqfilcufhwmovabbzvkfyxdjigfxrltfpkdtaokgovsjoaggndshyhanfagbqjbhiarprnszhvurljmuzbyi\nyemaufoyjodudxalvidtminrrjozeqvxowoztwmrprykclidzinylywplcnyrrahexsfvbhogboyuzzmqajoapqjozbzechl",
+      "output": "95\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "9\nuuuokjtms\ntgutvncoy",
+      "output": "8\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "8\nqbshxqbu\nvgplufyv",
+      "output": "8\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "100\naaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\nbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "output": "100\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "67\nnhnarbddcjuhxkcbmycbalzmmftvxhxvhcqofmsnprtjonbhwgikyxtkexlgdxnyscs\nezwngixrwtwcdupziuuvaygacixuirtmhrgmgewzqbpeqoqvinghozlkeuzzzzqqxvz",
+      "output": "63\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "47\nsubthtcqgeyvbbmujhofzefcegwulpaiqumbssqbdgcnwak\nufcgzrlhmupbwjdntkdhgiuxmfiiytabucyhraeahmtbpzd",
+      "output": "46\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "96\nledossrimhpdlormtybffnmgqzlpgrijjzckacsvgfjhkewmgoxwbsgnvxbwbrcurnwwcbcsqwmnsuykujfquaupayhiotlr\nskghhdboxmgijsnqccdurwusyigtpjimdrdgecatzkgagorvbmsjypsbfpejzabnayagsuvqiyezaudmqevnpnehyeiyciph",
+      "output": "93\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "7\npfvgozb\npkruvnl",
+      "output": "6\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "6\nydkacv\nrqknzy",
+      "output": "5\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "10\nmkynmkneqd\naxwwqkgpfe",
+      "output": "9\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "10\nyatoenvooq\nzdjtocumkv",
+      "output": "10\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "5\nabcba\nababa",
+      "output": "1\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "8\nkegconde\nectvbhbs",
+      "output": "8\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "9\nwlipoyvns\ngkjpqegzv",
+      "output": "8\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "40\neueaexvvucrfmrnclhswqbczbvwcqonuxiougmlt\nosjrdqxvybkxymxlillkkohkihqozxcjeqmznxej",
+      "output": "39\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "9\nsyoujslnw\nqsilylfra",
+      "output": "9\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "40\ngrliwupozzeaiokhfpuuclhjxazvymdtjurtbmqb\ncdcijxegcfzquxfbynxslayrwchodmpbksxmrkmm",
+      "output": "38\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "4\nkrff\nqksb",
+      "output": "4\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "100\nzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz\nzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+      "output": "0\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "10\ngguguegsqe\nvyrdlhjdso",
+      "output": "10\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "10\nmbtcjpsalj\nvoqxczmoaa",
+      "output": "10\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "10\naaaaaaaaaa\nbbbbbaaaaa",
+      "output": "5\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "88\njwubkqxsibqnauabuslfjuzjxqftyjovwxrfqkmnzckagqfrlojjsihxdaqfodowvgvavqpyhunyvnbjhidphcfe\njwrpgjybzjlkkqvubyvhlrgrhrnipiutvxxmctqoktlshpunzrkxushluakveiwqweusppysjnjzuqaisvlthkoh",
+      "output": "82\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "1\na\na",
+      "output": "0\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "2\noh\ncf",
+      "output": "2\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "4\nqqis\ndvot",
+      "output": "4\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "6\ncawdhx\nynvtaj",
+      "output": "6\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "1\ni\nw",
+      "output": "1\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "63\nutjhsqzvewwaogntkynogboexfzjmwwvlijwzrwmixbawgrobmoiusymdwjoodc\nfbfjhomdaihrelymdedjqncaujzhyiwwnflsmfqhtgehbhrjkbzthzoiixkagtm",
+      "output": "60\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "85\nsairmfrrsuciavxshrephsvhbigmrqsttkavqaflbztoqnhpnlumimmdifkdbnkhmqbgnzlhfosoobsiytshf\nndjiyczsgwrisogijhztcmpntpkbompgyvzafamsyqvmifeojwuxoojoomxpruyiaiawjanihavdrvdxcllya",
+      "output": "82\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "28\nuwnyxougvqduxjioswcjuunqwahg\netwjqmlqasygsyxzrrfsiovgjqaa",
+      "output": "28\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "48\nxbgswirnssdbeqylkgvakxeeeewughomcanjfwaveddwlfwa\nntyrpovjqpvofhhhesgcnafbnvztbjuqmeiyjnvllntwzlgq",
+      "output": "47\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "10\naaaaaaaaaa\naaaaabaaaa",
+      "output": "1\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "10\nysbvqcejax\nmnnrqxrlgh",
+      "output": "9\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "7\nrydlfiv\naorrjex",
+      "output": "7\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "4\noqsk\nnpfz",
+      "output": "4\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "40\nvidbcmmqjnrdtpkihvtupujrqiwwdtijqtwtmplx\nkfjxfbwqbvxcxbibfwwmnhesipdhdipfyfosbsub",
+      "output": "38\n",
+      "testtype": "stdin"
+    }
+  ]
+}

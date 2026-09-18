@@ -1,0 +1,11 @@
+.git
+.venv
+.deps
+artifacts
+data
+external
+runs
+__pycache__
+*.pyc
+*.zip
+

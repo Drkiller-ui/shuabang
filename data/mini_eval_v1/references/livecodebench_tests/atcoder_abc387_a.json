@@ -1,0 +1,226 @@
+{
+  "public": [
+    {
+      "input": "20 25",
+      "output": "2025",
+      "testtype": "stdin"
+    },
+    {
+      "input": "30 25",
+      "output": "3025",
+      "testtype": "stdin"
+    },
+    {
+      "input": "45 11",
+      "output": "3136",
+      "testtype": "stdin"
+    },
+    {
+      "input": "2025 1111",
+      "output": "9834496",
+      "testtype": "stdin"
+    }
+  ],
+  "private": [
+    {
+      "input": "1 1",
+      "output": "4\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "20 31",
+      "output": "2601\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "41 14",
+      "output": "3025\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "32 26",
+      "output": "3364\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "1976 1142",
+      "output": "9721924\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "611 391",
+      "output": "1004004\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "22 31",
+      "output": "2809\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "2025 2025",
+      "output": "16402500\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "604 259",
+      "output": "744769\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "162 359",
+      "output": "271441\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "16 10",
+      "output": "676\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "36 7",
+      "output": "1849\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "46 39",
+      "output": "7225\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "1595 1377",
+      "output": "8832784\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "2025 2",
+      "output": "4108729\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "1 2025",
+      "output": "4104676\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "10 20",
+      "output": "900\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "5 44",
+      "output": "2401\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "144 133",
+      "output": "76729\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "869 668",
+      "output": "2362369\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "615 349",
+      "output": "929296\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "774 178",
+      "output": "906304\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "7 47",
+      "output": "2916\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "1650 1496",
+      "output": "9897316\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "23 38",
+      "output": "3721\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "1165 1802",
+      "output": "8803089\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "1188 1789",
+      "output": "8862529\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "17 35",
+      "output": "2704\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "26 46",
+      "output": "5184\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "16 47",
+      "output": "3969\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "2025 2024",
+      "output": "16394401\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "27 3",
+      "output": "900\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "17 33",
+      "output": "2500\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "378 947",
+      "output": "1755625\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "2 2025",
+      "output": "4108729\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "35 29",
+      "output": "4096\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "2024 1",
+      "output": "4100625\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "1068 1533",
+      "output": "6765201\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "37 15",
+      "output": "2704\n",
+      "testtype": "stdin"
+    },
+    {
+      "input": "32 22",
+      "output": "2916\n",
+      "testtype": "stdin"
+    }
+  ]
+}

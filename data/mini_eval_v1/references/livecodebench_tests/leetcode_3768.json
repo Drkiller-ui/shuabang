@@ -1,0 +1,171 @@
+{
+  "public": [
+    {
+      "input": "\"3902\"",
+      "output": "true",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"34789\"",
+      "output": "false",
+      "testtype": "functional"
+    }
+  ],
+  "private": [
+    {
+      "input": "\"353\"",
+      "output": "true",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"797\"",
+      "output": "true",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"1364723224024833055627576367217470039597470182191684431636501034723617225377245379897442927987484764\"",
+      "output": "false",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"5992032348184827688463419191960731756463463518329044359683121999569397042778042231221189208926202965\"",
+      "output": "true",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"2009155026229485699785572589262168965823165755694636587949715134305443623965884177092858769475572800\"",
+      "output": "true",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"4936712261807268727626454632370168911024599776816640926809957764105205893942199868056940549889482686\"",
+      "output": "false",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"510\"",
+      "output": "false",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"355\"",
+      "output": "false",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"650\"",
+      "output": "false",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"797\"",
+      "output": "true",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"323\"",
+      "output": "true",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"464\"",
+      "output": "true",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\"",
+      "output": "true",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"410\"",
+      "output": "false",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"141\"",
+      "output": "true",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"919\"",
+      "output": "true",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"0677836657172146278063700960401856898724450120300269217603236073551799840060689426413951612160738437\"",
+      "output": "false",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"646\"",
+      "output": "true",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"471\"",
+      "output": "false",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"868\"",
+      "output": "true",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"149\"",
+      "output": "false",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"442\"",
+      "output": "false",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"939\"",
+      "output": "true",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"9720411630195431905873394508142511255607994559218461766961771644689564970287923808196354338998225752\"",
+      "output": "true",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"969\"",
+      "output": "true",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"181\"",
+      "output": "true",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"0426750194839079234480459897174986854825434816800326413498149972896218517155283207965391241277850289\"",
+      "output": "false",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"7822251358349720932758499642776503645928266450247214679767019819080900069033460753900861954157285684\"",
+      "output": "true",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"884\"",
+      "output": "false",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"719\"",
+      "output": "false",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"2390730293101027555762996217641420432351206938566076839185808362953137840620568011539147284610580742\"",
+      "output": "true",
+      "testtype": "functional"
+    }
+  ]
+}

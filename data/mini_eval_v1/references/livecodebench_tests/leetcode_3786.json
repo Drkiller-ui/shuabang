@@ -1,0 +1,216 @@
+{
+  "public": [
+    {
+      "input": "\"abced\"\n2",
+      "output": "3",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"aaazzz\"\n4",
+      "output": "6",
+      "testtype": "functional"
+    }
+  ],
+  "private": [
+    {
+      "input": "\"aut\"\n3",
+      "output": "2",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"gd\"\n1",
+      "output": "1",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"sgkvtpfhzaqqcpqurwtqstflvuejhauizysxckogelgdqynxdkqhexxpsdqoikugqafyvfmfulakvbtzxzampusrkbuae\"\n98",
+      "output": "75",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"y\"\n2",
+      "output": "1",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"mda\"\n18",
+      "output": "3",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"a\"\n1",
+      "output": "1",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"abababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab\"\n189",
+      "output": "200",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"sk\"\n13",
+      "output": "2",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"y\"\n11",
+      "output": "1",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"uzfmbdvwujewribdgfbebndxfloifvxzjpcspkvnpbacihvldfkobtuvbbyndprbbhlxduzeegkipmjerjtwlpwohcjsbijk\"\n67",
+      "output": "69",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"jixbqrflevtrkjrayzqdgjwwvxyjrtunnzhboevkodqvxdxndhiohvlwjaxposzgtroesslejvnjnyssnxknpxoorguao\"\n64",
+      "output": "67",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"eoaomoywvhgftyeadslggdpdsowqyuinzginteozwrpoeuxbaqlx\"\n87",
+      "output": "48",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"eq\"\n23",
+      "output": "2",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"n\"\n10",
+      "output": "1",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"alr\"\n5",
+      "output": "1",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"s\"\n8",
+      "output": "1",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"gyyygdukgyrcgydpotkezwnrzpkxiqgxeoncnjsxckvmvuodbibbgoevgkcjinturopgnaomhvhmrqucfewpvolcqnvmeq\"\n45",
+      "output": "63",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"vd\"\n10",
+      "output": "2",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"zyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkji\"\n34",
+      "output": "47",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"yr\"\n15",
+      "output": "2",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"ctwwaozjgjjinhfldoftqbgwhtxnlyianmqzfzxikumijtrkcjzmpvniueqpttsnykbpjjulpassurpgzqvygxhnkwuxbvqitz\"\n50",
+      "output": "68",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"ndfwchtqjxxomjirkhvhqpdcvdkwdstvmuzulbexnrefduegggwxuhdtzqhzwafhuorqeyzwaxhcogqqcdnsxaadyydrsoyvuwmm\"\n149",
+      "output": "88",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"l\"\n76",
+      "output": "1",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"z\"\n14",
+      "output": "1",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"\n200",
+      "output": "200",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"no\"\n5",
+      "output": "2",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"z\"\n200",
+      "output": "1",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"ou\"\n6",
+      "output": "2",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"na\"\n13",
+      "output": "2",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"j\"\n17",
+      "output": "1",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"a\"\n20",
+      "output": "1",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"tznfvsmxncrtlggtbbdefvxqymhautbgvkcytvsehajomyqbvlsfktehjhvydbhmastyqemygdlkxepwrhxgpvgvcaud\"\n53",
+      "output": "66",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"lbg\"\n15",
+      "output": "3",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"u\"\n28",
+      "output": "1",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"qwr\"\n11",
+      "output": "3",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"cmlpywnplbkwdeekehtpsyraayrusgljvikcfqmyjnxiqgpejydjybfqibcsmnuufkyervygdfbienmifngsjastkmuaeit\"\n71",
+      "output": "71",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"pc\"\n2",
+      "output": "1",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"bt\"\n10",
+      "output": "2",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"uu\"\n24",
+      "output": "2",
+      "testtype": "functional"
+    },
+    {
+      "input": "\"pp\"\n11",
+      "output": "2",
+      "testtype": "functional"
+    }
+  ]
+}

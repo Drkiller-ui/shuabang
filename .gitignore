@@ -1,0 +1,25 @@
+.deps/
+__pycache__/
+data/sources/
+*.part
+external/
+runs/
+.venv/
+.venv-dspark/
+environment-dspark-cu130.lock.txt
+environment-dspark-single.json
+environment-dspark-model-revisions.json
+.pytest_cache/
+.ruff_cache/
+*.pyc
+artifacts/*.zip
+candidate.py
+stdout.txt
+stderr.txt
+
+# GPQA is distributed under restricted terms and must not be published.
+# The aggregate and smoke files contain embedded GPQA rows as well.
+data/mini_eval_v1/questions/gpqa.jsonl
+data/mini_eval_v1/references/gpqa.jsonl
+data/mini_eval_v1/questions/all.jsonl
+data/mini_eval_v1/questions/smoke_200.jsonl
