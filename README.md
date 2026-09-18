@@ -1,154 +1,62 @@
-# Qwen3.5-4B 小规模多模态评测集
+# Qwen3.5-4B 三项评测集
 
-本项目包含一套 1,202 题的 mini 评测集、固定的 200 题快速检查子集，以及可记录思考轨迹、工具轨迹、逐题得分和 bad case 的评测 Harness。仓库中的数据文件不包含任何模型跑分。
+本项目评测 **498 道题**：GPQA Diamond 198 题、MMMU 200 题、MultiModalQA 100 题。GPQA 测研究生级科学推理；MMMU 测多学科图文理解；MultiModalQA 测跨模态多跳问答。后两组均有图片输入。MMMU 和 MultiModalQA 是从固定上游版本按固定种子抽取的本项目子集，不应称为完整官方榜单成绩。
 
-> **公开仓库说明：** 为遵守 GPQA 的防泄露要求，Git 历史不包含 GPQA 的题目与答案，也不包含嵌入 GPQA 行的 `all.jsonl`、`smoke_200.jsonl` 和完整 ZIP。获得 GPQA 数据授权后，按锁定源版本在本地重建这些文件；不要把它们提交到公开仓库。
+| 数据集 | 来源与划分 | 题数 | 选择方法 |
+|---|---|---:|---|
+| GPQA Diamond | idavidrein/gpqa，gpqa_diamond | 198 | 完整 Diamond，选项按题号和固定种子稳定打乱 |
+| MMMU | MMMU/MMMU，validation | 200 | 按 30 个学科比例分层 |
+| MultiModalQA | allenai/multimodalqa，dev | 100 | 真实跨模态题，按模态组合和题型比例分层 |
+
+数据位于 `data/mini_eval_v1`。目录名保留以兼容现有运行路径，目录内容和 `suite.json` 已缩为上述三组。`questions/all.jsonl` 汇总 498 题；`questions/smoke_200.jsonl` 是其中固定的 200 题快速子集。每组分别有 `questions/<benchmark>.jsonl` 和 `references/<benchmark>.jsonl`，输入图片放在 `assets/`。`manifests/` 记录来源版本与抽样 ID，`checksums.json` 记录可公开文件的 SHA-256。GPQA 题目和答案、本地汇总题单、相关抽样 ID、校验值及生成归档不进入公开 Git 历史。
 
 ## 当前部署方案
 
-| 项目 | 固定配置 |
-|---|---|
-| 模型 | `Qwen/Qwen3.5-4B` |
-| 推理 | SGLang 0.5.19 + DSpark；不使用 DFlash2 |
-| Python / PyTorch / CUDA runtime | Python 3.11 / PyTorch 2.13.0 / CUDA 13.0 |
-| DSpark draft | `shanjiaz/qwen3_5_4b_perfectblend_regen_dspark` |
-| 单卡验收 | 1 × RTX 4090 48GB，32K context，并发 1，关闭 CUDA graph |
-| 正式评测 | 2 × RTX 4090 48GB，DP=2、TP=1，先验收 64K context，总并发 4 |
-| 输出限制 | 16,384 tokens 标记长思考；32,768 tokens 硬上限并记录截断 |
-
-Python 包统一由 `uv` 管理。单卡 4090 只用于确认依赖、模型、多模态输入和 DSpark 路径全部可用；正式跑分再换双卡。完整原理和验收产物见 [DSPARK_SGLANG_DEPLOYMENT.md](DSPARK_SGLANG_DEPLOYMENT.md)。
-
-## 快速开始
-
-在单卡 RTX 4090 48GB 机器上执行：
+模型使用 Qwen3.5-4B，推理服务使用 SGLang 0.5.19 + DSpark。单张 RTX 4080 SUPER 32GB 已完成 32K context、并发 1 的链路验收；双张 RTX 4090 48GB 计划以 DP=2、TP=1 运行正式评测。安装、验收和模型 revision 锁见 [DSpark 部署说明](DSPARK_SGLANG_DEPLOYMENT.md)。
 
 ```bash
-cd /root/autodl-tmp/shuabang
-export HF_HOME=/root/autodl-tmp/huggingface
-CUDA_VISIBLE_DEVICES=0 bash scripts/validate_qwen35_4b_sglang_dspark_4090.sh
+CUDA_VISIBLE_DEVICES=0 bash scripts/validate_qwen35_4b_sglang_dspark_4080super.sh
 ```
 
-只有 `runs/dspark-4090-install-validation/PASS.txt` 生成，且 `validation.json` 记录 `spec_verify_ct > 0` 和 `spec_accept_length >= 1.01`，才算单卡环境验收通过。换到双卡机器后启动正式服务：
+## 运行
+
+先启动 Qwen3.5-4B 的 OpenAI 兼容服务，再运行：
 
 ```bash
-CUDA_VISIBLE_DEVICES=0,1 bash scripts/launch_qwen35_4b_sglang_dspark_dual.sh
+bash scripts/run_full_eval.sh runs/qwen35-4b-gpqa-mmmu-mmqa-v1
 ```
 
-完成私有 GPQA 与汇总文件重建后，在另一个终端启动全量评测：
+脚本依次执行生成、评分和报告，支持断点续跑。默认 `TOOLS=local-vision`：MMMU 和 MultiModalQA 可调用离线视觉工具，GPQA 闭卷作答。**默认评测不需要 Docker 或搜索密钥。** 模型如果没有主动调用视觉工具，日志会显示零次调用。`MAX_TOKENS` 默认 32768，避免先前 2048 token 测试中多数回答被截断。输出和工具调用细节见 [评测说明](EVALUATION.md)。
 
-```bash
-API_BASE=http://127.0.0.1:8000/v1 \
-CONCURRENCY=4 TOOLS=agentic \
-  bash scripts/run_full_eval.sh runs/qwen35-4b-dspark-baseline
-```
+GPQA 与 MultiModalQA 也支持单独运行 `TOOLS=agentic` 的联网轨道；此模式需要 `SERPER_API_KEY`，并且 Python 工具需要外部可用的 Docker/Podman 沙箱。联网轨道成绩应单独报告，不与默认闭卷成绩混合。
 
-Harness 在工具注册层固定权限：只有 MultiModalQA 和 GPQA 注册网页搜索、图片搜索与页面访问；其他任务最多获得离线视觉或沙箱 Python。联网题标为 `open_book_agentic`，不能与闭卷成绩混报。评测支持显式思考与最终答案记录、循环和答后回退诊断、断点续跑、Docker/Podman 代码沙箱、逐数据集得分与 bad case 导出。完整参数见 [EVALUATION.md](EVALUATION.md)。
+## 数据约定
 
-| 能力 | 来源 | 数量 | 选择方式 |
-|---|---|---:|---|
-| 视觉数学推理 | MathLLMs/MathVision，testmini | 304 | 完整官方 mini |
-| 多模态知识 | MMMU/MMMU，validation | 200 | 按 30 个学科比例分层 |
-| 纯文本通识 | TIGER-Lab/MMLU-Pro，test | 300 | 按学科比例分层 |
-| 纯文本编程 | livecodebench/code_generation_lite，v6 增量文件 test6.jsonl | 100 | 按难度 × 比赛月份比例分层 |
-| 跨模态多跳问答 | allenai/multimodalqa，dev | 100 | 仅选真实跨模态题，按模态组合 × 题型比例分层 |
-| 研究生级科学推理 | idavidrein/gpqa，GPQA Diamond | 198 | 完整官方 Diamond；选项按固定种子稳定打乱 |
+每条 `questions` 记录包含全局 `id`、上游 `source_id`、固定版本 `source`、题目文本、选项、图片相对路径和必要的 `metadata`。模型只接收 `questions` 和对应图片；`references` 中的答案、支持证据及评分信息不发送给模型。
 
-MathVision testmini 和 GPQA Diamond 使用对应官方子集的全部题目；其余名称指**本项目自建子集**。不要把整套汇总分标为完整官方榜单成绩。LiveCodeBench 的 `v6` 增量与累计 `release_v6` 不同：本项目使用前者，确切时间范围记录在抽样清单中。
+- MMMU 的 `<image 1>` 等占位符由 `metadata.image_map` 映射到原始图片，保持图文顺序。
+- MultiModalQA 保留官方完整候选上下文：文本、表格及候选图片，包含干扰项。正确答案和支持证据只存于 `references`。
+- GPQA 的四个选项按固定种子稳定打乱；reference 端记录对应的 A–D 标签。不得恢复为“正确答案恒在第一项”。
 
-## 使用入口
-
-- `data/mini_eval_v1/questions/all.jsonl`：1,202 道题的模型输入数据；含 GPQA，仅在完成私有重建后存在。
-- `data/mini_eval_v1/questions/smoke_200.jsonl`：200 道快速检查题，来自主套件，不是独立测试集；含 GPQA，仅在完成私有重建后存在。
-- `data/mini_eval_v1/questions/<benchmark>.jsonl`：按能力分开的题目。
-- `data/mini_eval_v1/references/<benchmark>.jsonl`：通过 `id` 关联的答案、测试入口和原始记录。
-- `data/mini_eval_v1/assets/`：实际图片文件，保持原始分辨率，不重新编码。
-- `data/mini_eval_v1/references/livecodebench_tests/`：解码后的公开与隐藏测试用例。
-- `data/mini_eval_v1/assets/multimodalqa/`：MultiModalQA 候选图片；100 题共引用 958 张不同图片。
-- `data/mini_eval_v1/suite.json`：套件概况。
-- `data/mini_eval_v1/manifests/`：源版本、选择的 ID、未使用 ID、分层统计、原始数据说明。
-- `data/mini_eval_v1/checksums.json`：数据文件的 SHA-256 和字节数。
-- `data/mini_eval_v1/validation_report.json`：执行校验脚本后生成的结果。
-
-完成私有文件重建后，复制整个 `data/mini_eval_v1` 目录即可搬到评测服务器。内部路径统一使用相对于这个目录的路径，不依赖当前 Windows 盘符。
-
-## 数据格式
-
-每个 `questions` 记录包含：
-
-| 字段 | 含义 |
-|---|---|
-| `id` | 全局唯一 ID：数据集名加原始 ID |
-| `source_id` | 原始题号；LCB 使用平台加题号，避免平台间重名 |
-| `source` | Hugging Face 仓库、固定 commit、split、config |
-| `question` | 原题文本/原始指令，保留公式和图像占位符 |
-| `options` | 按原顺序保留的选项；非选择题为空列表 |
-| `images` | 本地输入图片路径列表 |
-| `metadata` | 学科、难度、图像映射、starter code 等必要信息 |
-
-这是一种通用数据格式，**并非已经注册到 VLMEvalKit 或 lmms-eval 的任务**。后续接入模型时需要按以下约定组装输入：
-
-1. 只使用 `questions` 数据构造模型消息。`references` 和原始源数据不传给模型。
-2. 选择题将 `options` 顺序标为 A、B、C……，不得重排。
-3. MMMU 的 `<image 1>`、`<image 2>` 等位置可能出现在题目或选项中。用 `metadata.image_map` 映射到真实图片，保持图文顺序。
-4. MathVision 官方图片有时已把多个子图拼成一张、并在图内标注 `<image1>`、`<image2>`。这些标记可能映射到同一张合成图；只传入 `images` 中的一张官方图，保留题目中的子图引用，不要重复插入整张图。不要把路径字符串当成图像输入。
-5. LCB 要结合 `metadata.starter_code` 和 `metadata.execution_metadata` 确定函数式或标准输入输出式任务；测试用例保留了 `testtype`。
-6. MultiModalQA 只选 `metadata.modalities` 至少包含两种模态的 dev 题。输入保留官方完整候选上下文：10 段文本、1 张表格和 3–15 张候选图片，包含官方干扰项；支持事实、推理链、中间答案等答案侧标注只保留在 `references`。
-7. GPQA 使用完整 Diamond 子集。原始 CSV 把正确答案与三个错误答案分列；构建时按题目 ID 和固定种子稳定打乱选项，并在 reference 端重新计算 A-D 标签。不要恢复成固定的“正确答案在第一个字段”顺序。
-
-最简单的本地读取：
-
-```python
-import json
-from pathlib import Path
-
-root = Path("data/mini_eval_v1")
-with (root / "questions/mathvision.jsonl").open(encoding="utf-8") as f:
-    rows = [json.loads(line) for line in f]
-
-first = rows[0]
-image_paths = [root / relative for relative in first["images"]]
-```
-
-## 抽样与复现
-
-- 固定种子：`20260916`。
-- 每层数量按总体占比采用最大余数法分配；每层按 `SHA256(seed|namespace|source_id)` 排序取前若干题。
-- 该方法不依赖源文件读取顺序，也不依赖 Python 随机数实现。
-- 不根据模型是否答对、答案内容或题目长度筛题；抽样清单保留每层总体数和选择数。
-- 四个自建子集的 `*.unused_ids.json` 记录未使用的原始题号，可用于后续独立验收。这里只存清单，没有额外制作或跑分。MultiModalQA 的未使用清单只统计符合真实跨模态条件的 dev 题。
-- MathVision 使用完整 testmini，因此该来源内没有剩余题。后续独立验收需要从完整 test 中排除 testmini ID。
-- 主套件用于反复选 checkpoint，应视为开发评测；smoke 子集不能当成独立验收。
-
-固定的数据仓库版本见 `config/sources.lock.json`。下载脚本会优先使用锁定 commit，已有缓存与锁不一致时会报错。首次固定版本后不要在同一实验里移动到新的上游版本。
+固定种子为 `20260916`。各层数量按最大余数法分配，层内按 `SHA256(seed|namespace|source_id)` 排序取题。抽样不依据模型输出。此套件适合开发期比较 checkpoint；`smoke_200` 不是独立验收集。
 
 ## 重建和校验
 
-Python 3.13 环境中可在项目目录安装构建依赖：
-
-```text
+```bash
 python -m pip install --target .deps -r requirements-data.txt
 python scripts/fetch_sources.py
-python scripts/build_mini_eval.py
+GPQA_ZIP_PASSWORD=<your-authorized-password> python scripts/build_mini_eval.py
 python scripts/finalize_mini_eval.py
 python scripts/validate_mini_eval.py
 python scripts/package_mini_eval.py
 ```
 
-下载需要网络；源文件保存在 `data/sources`，已下载的文件可复用。大文件使用可续传的分块下载，并核对每块的范围和长度。构建、归档清单和校验均离线进行。现有数据的本地校验仅需 Python 和 Pillow，不需要 GPU。打包脚本生成 `artifacts/mini_eval_v1.zip`，包含数据、脚本、版本锁及说明，不包含源文件缓存和本机依赖。
+下载脚本使用 `config/sources.lock.json` 中的固定版本。已有数据可离线执行 `python scripts/validate_mini_eval.py`；它检查 498 题的 ID、图片、答案映射、跨模态条件、合并题单及校验和，不执行模型推理。完整运行方法见 [EVALUATION.md](EVALUATION.md)。
 
-校验内容包括：数量与 ID 对齐、题号唯一性、图片可解码、图像占位符映射、选择题答案范围、MultiModalQA 跨模态条件与答案侧字段隔离、代码测试字段与数量、文件校验和、smoke 子集与主集一致性。
+## 来源与发布
 
-**校验不等于完成模型评测**：当前不执行代码题程序，也不验证模型正确率。运行代码评测时应使用隔离执行环境。
+- [GPQA](https://github.com/idavidrein/gpqa)
+- [MMMU](https://huggingface.co/datasets/MMMU/MMMU)
+- [MultiModalQA](https://github.com/allenai/multimodalqa)
 
-## 来源与使用说明
-
-- MathVision：https://huggingface.co/datasets/MathLLMs/MathVision
-- MMMU：https://huggingface.co/datasets/MMMU/MMMU
-- MMLU-Pro：https://huggingface.co/datasets/TIGER-Lab/MMLU-Pro
-- LiveCodeBench：https://huggingface.co/datasets/livecodebench/code_generation_lite
-- MultiModalQA：https://github.com/allenai/multimodalqa
-- GPQA：https://github.com/idavidrein/gpqa
-
-保留了固定版本的原始数据卡，见 `manifests/*.source_README.md`。各来源的许可分别适用；本项目没有把汇总数据重新授权。LCB 数据卡的许可标签为 `cc`，其加载脚本写为 `MIT License`，二者不一致，保留原始说明供后续公开发布前核对。MultiModalQA 官方仓库当前没有单独的 `LICENSE` 文件，公开或再分发前需要向上游确认授权。GPQA 官方要求避免在线公开数据样例以降低泄露风险，因此包含 GPQA 的本地数据目录和压缩包应保持私有。所有评测数据和答案都不应混入训练集。
-
-Harness 的工具接口参考并修改自 Apache-2.0 的 [OpenSearch-VL](https://github.com/shawn0728/OpenSearch-VL)。固定 revision、改动范围和完整许可见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) 与 `licenses/OpenSearch-VL-Apache-2.0.txt`。
+GPQA 官方要求避免在线公开数据样例，因此含 GPQA 的题单、答案、badcase 和归档应保持私有。MultiModalQA 官方仓库未单独提供 LICENSE 文件；公开再分发前需确认授权。各来源的原始说明保存在 `manifests/*.source_README.md`。工具接口的第三方许可见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。

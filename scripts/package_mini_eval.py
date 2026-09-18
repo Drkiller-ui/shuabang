@@ -4,7 +4,7 @@ from data_common import ROOT, OUT, read_json, sha256
 
 def main():
     report = read_json(OUT / 'validation_report.json')
-    assert report['status'] == 'passed' and report['questions'] == 1202
+    assert report['status'] == 'passed' and report['questions'] == 498
     for relative, entry in read_json(OUT / 'checksums.json').items():
         assert sha256(OUT / relative) == entry['sha256'], relative
     archive = ROOT / 'artifacts/mini_eval_v1.zip'

@@ -14,8 +14,7 @@ from scipy.optimize import linear_sum_assignment
 
 from .answer import extract_choice, extract_final, math_equal, normalize_math, normalized_open_values
 from .common import (append_jsonl, latest_records, load_benchmark,
-                     read_json, utc_now, write_jsonl)
-from .execution import SandboxExecutor, extract_code
+                     utc_now, write_jsonl)
 from .infer import parse_benchmarks
 
 try:
@@ -53,22 +52,6 @@ def base_result(question: dict[str, Any], reference: dict[str, Any], response: d
     }
 
 
-def score_mathvision(question: dict[str, Any], reference: dict[str, Any], response: dict[str, Any], method: str) -> dict[str, Any]:
-    result = base_result(question, reference, response, method)
-    answer = response.get("answer", "") if response.get("status") == "ok" else ""
-    expected = str(reference["answer"])
-    extracted = extract_final(answer)
-    choice = extract_choice(answer, "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[:len(question["options"])]) if question["options"] else None
-    expected_value = question["options"][ord(expected) - ord("A")] if question["options"] else ""
-    correct = ((choice == expected) if question["options"] else math_equal(expected, extracted))
-    if question["options"] and not correct:
-        correct = math_equal(expected_value, extracted)
-    result.update({"correct": bool(correct), "prediction": choice or extracted,
-                   "expected": expected, "expected_value": expected_value,
-                   "scoring_detail": "official-style boxed extraction plus symbolic/numeric equivalence"})
-    return result
-
-
 def score_mmmu(question: dict[str, Any], reference: dict[str, Any], response: dict[str, Any], method: str) -> dict[str, Any]:
     result = base_result(question, reference, response, method)
     answer = response.get("answer", "") if response.get("status") == "ok" else ""
@@ -87,16 +70,6 @@ def score_mmmu(question: dict[str, Any], reference: dict[str, Any], response: di
         detail = "MMMU normalized open-answer matching"
     result.update({"correct": bool(correct), "prediction": prediction, "expected": expected,
                    "scoring_detail": detail})
-    return result
-
-
-def score_mmlu_pro(question: dict[str, Any], reference: dict[str, Any], response: dict[str, Any], method: str) -> dict[str, Any]:
-    result = base_result(question, reference, response, method)
-    answer = response.get("answer", "") if response.get("status") == "ok" else ""
-    expected = str(reference["answer"])
-    prediction = extract_choice(answer, "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[:len(question["options"])])
-    result.update({"correct": prediction == expected, "prediction": prediction, "expected": expected,
-                   "scoring_detail": "official-style final option extraction"})
     return result
 
 
@@ -210,38 +183,10 @@ def score_multimodalqa(question: dict[str, Any], reference: dict[str, Any],
     return result
 
 
-def safe_name(value: str) -> str:
-    return re.sub(r"[^A-Za-z0-9_.-]", "_", value)
-
-
-def score_lcb(question: dict[str, Any], reference: dict[str, Any], response: dict[str, Any], method: str,
-              suite: Path, run: Path, executor: SandboxExecutor, per_test_timeout: float) -> dict[str, Any]:
-    result = base_result(question, reference, response, method)
-    if response.get("status") != "ok":
-        result.update({"correct": False, "prediction": None, "execution": {"ok": False, "worker_error": "no successful response"}})
-        return result
-    code = extract_code(response.get("answer", ""))
-    generated = run / "artifacts" / "livecodebench" / f"{safe_name(question['id'])}.py"
-    generated.parent.mkdir(parents=True, exist_ok=True)
-    generated.write_text(code, encoding="utf-8")
-    tests = read_json(suite / reference["tests_file"])
-    job = {"code": code, "tests": tests["public"] + tests["private"],
-           "func_name": question["metadata"].get("execution_metadata", {}).get("func_name"),
-           "per_test_timeout": per_test_timeout}
-    execution = executor.livecodebench(job, question["id"])
-    result.update({"correct": bool(execution.get("ok")), "prediction": str(generated.relative_to(run)).replace("\\", "/"),
-                   "execution": execution, "expected": "all public and private tests pass"})
-    return result
-
-
 def score_run(args: argparse.Namespace) -> None:
     suite, run = Path(args.suite).resolve(), Path(args.run).resolve()
     benchmarks = parse_benchmarks(args.benchmarks)
-    executor = None
-    if "livecodebench" in benchmarks:
-        executor = SandboxExecutor(args.executor, args.container_image, args.problem_timeout, run / "work")
-    method = (f"mmeval-v1;executor={args.executor};image={args.container_image};"
-              f"problem_timeout={args.problem_timeout};per_test_timeout={args.per_test_timeout}")
+    method = "mmeval-v1;gpqa-mmmu-multimodalqa"
 
     for benchmark in benchmarks:
         questions, references = load_benchmark(suite, benchmark)
@@ -262,19 +207,12 @@ def score_run(args: argparse.Namespace) -> None:
 
         def score_one(item: tuple[dict[str, Any], dict[str, Any], dict[str, Any]]) -> dict[str, Any]:
             question, reference, response = item
-            if benchmark == "mathvision":
-                return score_mathvision(question, reference, response, method)
             if benchmark == "mmmu":
                 return score_mmmu(question, reference, response, method)
-            if benchmark == "mmlu_pro":
-                return score_mmlu_pro(question, reference, response, method)
             if benchmark == "gpqa":
                 return score_gpqa(question, reference, response, method)
             if benchmark == "multimodalqa":
                 return score_multimodalqa(question, reference, response, method)
-            if benchmark == "livecodebench":
-                assert executor is not None
-                return score_lcb(question, reference, response, method, suite, run, executor, args.per_test_timeout)
             raise AssertionError(f"unhandled benchmark {benchmark}")
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=args.workers) as pool:

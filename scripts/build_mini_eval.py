@@ -1,15 +1,13 @@
-"""Build the frozen 1,202-question suite from downloaded official files."""
+"""Build the frozen 498-question GPQA, MMMU, MultiModalQA suite."""
 import ast
-import base64
 import csv
 import hashlib
 import gzip
 import io
 import json
-import pickle
+import os
 import re
 import sys
-import zlib
 import zipfile
 from collections import Counter
 from pathlib import Path
@@ -32,26 +30,6 @@ def question(name, source_id, text, options, images, metadata, source):
 def native_json(row):
     return {k: v for k, v in row.items()
             if not (isinstance(v, dict) and 'bytes' in v)}
-
-def build_mathvision():
-    rows = [r for _, r in parquet_rows('mathvision', 'data/*testmini*.parquet')]
-    assert len(rows) == 304
-    questions, references = [], []
-    for row in sorted(rows, key=lambda r: str(r['id'])):
-        sid = str(row['id'])
-        image = save_image(row['decoded_image'], f'assets/mathvision/{sid}')
-        tokens = sorted(set(re.findall(r'<image\s*\d+>', row['question'] + '\n' + '\n'.join(row['options']))))
-        q = question('mathvision', sid, row['question'], row['options'], [image],
-                     {'subject': row['subject'], 'level': row['level'],
-                      'source_image': row['image'], 'image_map': {token: image for token in tokens},
-                      'image_layout': 'single_official_image_may_contain_labeled_panels'},
-                     source_info('mathvision', 'testmini'))
-        questions.append(q)
-        references.append({'id': q['id'], 'answer': row['answer'], 'solution': row['solution'],
-                           'native': native_json(row)})
-    selection = {'method': 'official_testmini_all', 'seed': None, 'population_count': 304,
-                 'selected_count': 304, 'selected_strata': dict(Counter(r['subject'] for r in rows))}
-    write_suite('mathvision', questions, references, selection, [str(r['id']) for r in rows])
 
 def build_mmmu():
     entries = parquet_rows('mmmu', '*/validation-*.parquet')
@@ -77,68 +55,6 @@ def build_mmmu():
         references.append({'id': q['id'], 'answer': row['answer'],
                            'explanation': row['explanation'], 'native': native_json(row)})
     write_suite('mmmu', questions, references, selection, [r['id'] for r in rows])
-
-def build_mmlu_pro():
-    rows = [r for _, r in parquet_rows('mmlu_pro', 'data/test-*.parquet')]
-    chosen, selection = stratified(rows, 300, lambda r: r['category'],
-                                   lambda r: str(r['question_id']), 'mmlu_pro')
-    questions, references = [], []
-    for row in chosen:
-        q = question('mmlu_pro', str(row['question_id']), row['question'], row['options'], [],
-                     {'category': row['category'], 'original_source': row['src']},
-                     source_info('mmlu_pro', 'test'))
-        questions.append(q)
-        references.append({'id': q['id'], 'answer': row['answer'], 'answer_index': row['answer_index'],
-                           'native': row})
-    write_suite('mmlu_pro', questions, references, selection, [str(r['question_id']) for r in rows])
-
-class DataOnlyUnpickler(pickle.Unpickler):
-    def find_class(self, module, name):
-        raise pickle.UnpicklingError('Global object loading is disabled')
-
-def decode_private_tests(value):
-    try:
-        decoded = json.loads(value)
-    except (ValueError, TypeError):
-        # Official LCB format: base64(zlib(pickle(JSON string))). No globals allowed.
-        packed = zlib.decompress(base64.b64decode(value, validate=True))
-        unpacked = DataOnlyUnpickler(io.BytesIO(packed)).load()
-        assert isinstance(unpacked, str)
-        decoded = json.loads(unpacked)
-    assert isinstance(decoded, list) and decoded
-    return decoded
-
-def build_livecodebench():
-    path = SOURCE / 'livecodebench/test6.jsonl'
-    rows = [json.loads(line) for line in path.open(encoding='utf-8') if line.strip()]
-    def sid(row):
-        return f'{row["platform"]}:{row["question_id"]}'
-    def stratum(row):
-        return f'{row["difficulty"]}|{row["contest_date"][:7]}'
-    chosen, selection = stratified(rows, 100, stratum, sid, 'livecodebench')
-    selection['source_file'] = 'test6.jsonl'
-    selection['date_range'] = [min(r['contest_date'] for r in rows), max(r['contest_date'] for r in rows)]
-    selection['note'] = 'Custom sample of v6 incremental file; NOT full cumulative release_v6.'
-    questions, references = [], []
-    for row in chosen:
-        source_id = sid(row)
-        assert re.fullmatch(r'[A-Za-z0-9_-]+', row['platform'])
-        assert re.fullmatch(r'[A-Za-z0-9_-]+', row['question_id'])
-        public_tests = json.loads(row['public_test_cases'])
-        private_tests = decode_private_tests(row['private_test_cases'])
-        test_path = f'references/livecodebench_tests/{row["platform"]}_{row["question_id"]}.json'
-        write_json(OUT / test_path, {'public': public_tests, 'private': private_tests})
-        q = question('livecodebench', source_id, row['question_content'], [], [],
-                     {'title': row['question_title'], 'difficulty': row['difficulty'],
-                      'contest_date': row['contest_date'], 'platform': row['platform'],
-                      'contest_id': row['contest_id'],
-                      'starter_code': row.get('starter_code', ''),
-                      'execution_metadata': json.loads(row.get('metadata') or '{}')},
-                     source_info('livecodebench', 'test', 'v6'))
-        questions.append(q)
-        references.append({'id': q['id'], 'tests_file': test_path,
-                           'public_test_count': len(public_tests), 'private_test_count': len(private_tests)})
-    write_suite('livecodebench', questions, references, selection, [sid(r) for r in rows])
 
 def read_gzip_jsonl(path):
     with gzip.open(path, 'rt', encoding='utf-8') as stream:
@@ -228,7 +144,10 @@ def build_gpqa():
     with zipfile.ZipFile(archive) as bundle:
         members = [name for name in bundle.namelist() if name.endswith('/gpqa_diamond.csv')]
         assert len(members) == 1, f'Expected one gpqa_diamond.csv, found {members}'
-        with bundle.open(members[0], pwd=b'deserted-untie-orchid') as raw:
+        password = os.environ.get('GPQA_ZIP_PASSWORD')
+        if not password:
+            raise RuntimeError('Set GPQA_ZIP_PASSWORD to rebuild the private GPQA source')
+        with bundle.open(members[0], pwd=password.encode('utf-8')) as raw:
             rows = list(csv.DictReader(io.TextIOWrapper(raw, encoding='utf-8-sig', newline='')))
     assert len(rows) == 198, f'Expected 198 GPQA Diamond questions, found {len(rows)}'
     questions, references = [], []
@@ -265,11 +184,9 @@ def build_gpqa():
 def main():
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('--only', choices=['mathvision', 'mmmu', 'mmlu_pro', 'livecodebench', 'multimodalqa', 'gpqa'])
+    parser.add_argument('--only', choices=['gpqa', 'mmmu', 'multimodalqa'])
     args = parser.parse_args()
-    builders = {'mathvision': build_mathvision, 'mmmu': build_mmmu,
-                'mmlu_pro': build_mmlu_pro, 'livecodebench': build_livecodebench,
-                'multimodalqa': build_multimodalqa, 'gpqa': build_gpqa}
+    builders = {'gpqa': build_gpqa, 'mmmu': build_mmmu, 'multimodalqa': build_multimodalqa}
     if args.only:
         builders[args.only]()
     else:

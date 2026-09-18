@@ -11,10 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CACHE = ROOT / 'data' / 'sources'
 LOCK = ROOT / 'config' / 'sources.lock.json'
 REPOS = {
-    'mathvision': 'MathLLMs/MathVision',
     'mmmu': 'MMMU/MMMU',
-    'mmlu_pro': 'TIGER-Lab/MMLU-Pro',
-    'livecodebench': 'livecodebench/code_generation_lite',
     'multimodalqa': 'allenai/multimodalqa',
     'gpqa': 'idavidrein/gpqa',
 }
@@ -156,9 +153,10 @@ def main():
     if args.inspect:
         return
     if args.repair_large:
-        targets = [('mmmu', 'Agriculture/validation-00000-of-00001.parquet'),
-                   ('livecodebench', 'test6.jsonl')]
+        targets = [('mmmu', 'Agriculture/validation-00000-of-00001.parquet')]
         for name, path in targets:
+            if name not in infos:
+                continue
             url = f'https://huggingface.co/datasets/{REPOS[name]}/resolve/{infos[name]["sha"]}/{path}'
             fetch_ranged(url, CACHE / name / path)
         verify_downloads()
@@ -166,14 +164,8 @@ def main():
     jobs = []
     for name, info in infos.items():
         paths = [x['rfilename'] for x in info['siblings']]
-        if name == 'mathvision':
-            paths = [p for p in paths if 'testmini' in p and p.endswith('.parquet')]
-        elif name == 'mmmu':
+        if name == 'mmmu':
             paths = [p for p in paths if '/validation-' in p and p.endswith('.parquet')]
-        elif name == 'mmlu_pro':
-            paths = [p for p in paths if '/test-' in p and p.endswith('.parquet')]
-        elif name == 'livecodebench':
-            paths = ['code_generation_lite.py', 'test6.jsonl']
         elif name == 'multimodalqa':
             paths = [p for p in paths if p.startswith('dataset/')]
         elif name == 'gpqa':
@@ -188,7 +180,7 @@ def main():
     with concurrent.futures.ThreadPoolExecutor(max_workers=5) as pool:
         def download(job):
             url, path = job
-            if path.name in {'test6.jsonl'} or path.parent.name == 'Agriculture':
+            if path.parent.name == 'Agriculture':
                 return fetch_ranged(url, path)
             return fetch(url, path)
         for result in pool.map(download, jobs):

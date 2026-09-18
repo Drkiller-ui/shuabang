@@ -86,4 +86,5 @@ def load_benchmark(suite: Path, benchmark: str) -> tuple[list[dict[str, Any]], d
     return questions, references
 
 
-BENCHMARKS = ("mathvision", "mmmu", "mmlu_pro", "livecodebench", "multimodalqa", "gpqa")
+BENCHMARKS = ("gpqa", "mmmu", "multimodalqa")
+DEFAULT_BENCHMARKS = BENCHMARKS

@@ -6,12 +6,14 @@ import asyncio
 from .infer import run_inference
 from .report import make_report
 from .scoring import score_run
+from .common import DEFAULT_BENCHMARKS
 
 
 def add_common(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--suite", default="data/mini_eval_v1")
     parser.add_argument("--run", required=True)
-    parser.add_argument("--benchmarks", default="all", help="all or comma-separated benchmark names")
+    parser.add_argument("--benchmarks", default=",".join(DEFAULT_BENCHMARKS),
+                        help="comma-separated benchmark names; default: gpqa,mmmu,multimodalqa; all selects all three")
 
 
 def main() -> None:
@@ -41,11 +43,7 @@ def main() -> None:
 
     score = sub.add_parser("score", help="Parse answers and execute code in a sandbox")
     add_common(score)
-    score.add_argument("--executor", choices=("docker", "podman", "local"), default="docker")
-    score.add_argument("--container-image", default="qwen35-eval-sandbox:latest")
     score.add_argument("--workers", type=int, default=4)
-    score.add_argument("--problem-timeout", type=float, default=180.0)
-    score.add_argument("--per-test-timeout", type=float, default=3.0)
     score.add_argument("--force", action="store_true")
 
     report = sub.add_parser("report", help="Aggregate scores and export bad cases")

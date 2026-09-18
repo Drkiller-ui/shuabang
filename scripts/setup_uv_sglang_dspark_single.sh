@@ -20,7 +20,12 @@ if ! command -v uv >/dev/null 2>&1; then
   export PATH="${HOME}/.local/bin:${PATH}"
 fi
 
-uv venv --python "$PYTHON_VERSION" "$VENV_DIR"
+if [[ ! -x "$VENV_DIR/bin/python" ]]; then
+  uv venv --python "$PYTHON_VERSION" "$VENV_DIR"
+else
+  "$VENV_DIR/bin/python" -c 'import sys; assert sys.version_info[:2] == (3, 11), sys.version'
+fi
+uv pip install --python "$VENV_DIR/bin/python" -r requirements-eval.txt
 uv pip install --python "$VENV_DIR/bin/python" --upgrade \
   --prerelease=allow \
   -r requirements-server.txt
@@ -91,6 +96,10 @@ uv pip freeze --python "$VENV_DIR/bin/python" > environment-dspark-cu130.lock.tx
   --revision-lock environment-dspark-model-revisions.json \
   --report environment-dspark-single.json
 
-echo "Single RTX 4090 48 GiB DSpark environment is ready."
+echo "Single ${EXPECTED_GPU_NAME_SUBSTRING} GPU DSpark environment is ready."
 echo "Run the complete startup and DSpark validation gate with:"
-echo "  SKIP_SETUP=1 bash scripts/validate_qwen35_4b_sglang_dspark_4090.sh"
+if [[ "$EXPECTED_GPU_NAME_SUBSTRING" == "4080" ]]; then
+  echo "  SKIP_SETUP=1 bash scripts/validate_qwen35_4b_sglang_dspark_4080super.sh"
+else
+  echo "  SKIP_SETUP=1 bash scripts/validate_qwen35_4b_sglang_dspark_4090.sh"
+fi

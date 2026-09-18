@@ -6,20 +6,19 @@ cd "$PROJECT_ROOT"
 VENV_DIR="${VENV_DIR:-.venv-dspark}"
 source "$VENV_DIR/bin/activate"
 
-RUN_DIR="${1:-runs/qwen35-4b-mini-v1}"
+RUN_DIR="${1:-runs/qwen35-4b-gpqa-mmmu-mmqa-v1}"
 MODEL="${MODEL:-Qwen/Qwen3.5-4B}"
 API_BASE="${API_BASE:-http://127.0.0.1:8000/v1}"
-BENCHMARKS="${BENCHMARKS:-all}"
+BENCHMARKS="${BENCHMARKS:-gpqa,mmmu,multimodalqa}"
 CONCURRENCY="${CONCURRENCY:-4}"
 WORKERS="${WORKERS:-4}"
 MAX_TOKENS="${MAX_TOKENS:-32768}"
-TOOLS="${TOOLS:-agentic}"
+TOOLS="${TOOLS:-local-vision}"
 MAX_TOOL_TURNS="${MAX_TOOL_TURNS:-8}"
 TOOL_EXECUTOR="${TOOL_EXECUTOR:-docker}"
-SCORE_EXECUTOR="${SCORE_EXECUTOR:-$TOOL_EXECUTOR}"
 
 if [[ "$BENCHMARKS" == "all" ]]; then
-  REQUIRED_BENCHMARKS=(mathvision mmmu mmlu_pro livecodebench multimodalqa gpqa)
+  REQUIRED_BENCHMARKS=(gpqa mmmu multimodalqa)
 else
   IFS=',' read -r -a REQUIRED_BENCHMARKS <<< "$BENCHMARKS"
 fi
@@ -55,7 +54,6 @@ python -m mmeval infer \
 SCORE_ARGS=(
   --run "$RUN_DIR"
   --benchmarks "$BENCHMARKS"
-  --executor "$SCORE_EXECUTOR"
   --workers "$WORKERS"
 )
 python -m mmeval score "${SCORE_ARGS[@]}"

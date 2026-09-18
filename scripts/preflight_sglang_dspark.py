@@ -41,7 +41,12 @@ def target_num_layers(config: dict[str, Any]) -> int | None:
 def draft_layer_ids(config: dict[str, Any]) -> list[int]:
     value = first_value(
         config,
-        ("target_layer_ids", "dspark_target_layer_ids", "dflash_target_layer_ids"),
+        (
+            "aux_hidden_state_layer_ids",
+            "target_layer_ids",
+            "dspark_target_layer_ids",
+            "dflash_target_layer_ids",
+        ),
     )
     if not isinstance(value, list):
         return []
@@ -208,7 +213,7 @@ def main() -> None:
             "target_layer_ids": taps,
             "gamma": gamma,
         }
-        if "Qwen3DSparkModel" not in architectures:
+        if not set(architectures).intersection({"DSparkDraftModel", "Qwen3DSparkModel"}):
             failures.append(f"Unexpected DSpark architecture: {architectures!r}")
         if layers is None or not taps:
             failures.append("Could not resolve target layer count or DSpark tap layers")

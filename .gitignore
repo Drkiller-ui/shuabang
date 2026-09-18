@@ -1,4 +1,5 @@
 .deps/
+.cache/
 __pycache__/
 data/sources/
 *.part
@@ -23,3 +24,7 @@ data/mini_eval_v1/questions/gpqa.jsonl
 data/mini_eval_v1/references/gpqa.jsonl
 data/mini_eval_v1/questions/all.jsonl
 data/mini_eval_v1/questions/smoke_200.jsonl
+data/mini_eval_v1/manifests/gpqa.json
+data/mini_eval_v1/manifests/gpqa.source_README.md
+data/mini_eval_v1/manifests/gpqa.unused_ids.json
+data/mini_eval_v1/manifests/smoke_200.ids.json

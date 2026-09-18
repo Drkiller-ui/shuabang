@@ -23,10 +23,7 @@ DEFAULT_MAX_TOKENS = {
 }
 
 AGENTIC_BENCHMARK_TOOL_POLICY = {
-    "mathvision": "local-vision-python",
     "mmmu": "local-vision",
-    "mmlu_pro": "none",
-    "livecodebench": "python",
     "multimodalqa": "agentic",
     "gpqa": "agentic",
 }
@@ -40,7 +37,7 @@ def effective_tool_profile(benchmark: str, requested_mode: str) -> str:
     if requested_mode == "none":
         return "none"
     if requested_mode == "local-vision":
-        return "local-vision" if benchmark in {"mathvision", "mmmu", "multimodalqa"} else "none"
+        return "local-vision" if benchmark in {"mmmu", "multimodalqa"} else "none"
     if requested_mode == "agentic":
         return AGENTIC_BENCHMARK_TOOL_POLICY[benchmark]
     raise ValueError(f"unsupported tools mode {requested_mode!r}")

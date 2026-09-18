@@ -1,39 +1,24 @@
 {
   "status": "passed",
   "benchmarks": {
-    "mathvision": {
-      "questions": 304,
+    "gpqa": {
+      "questions": 198,
       "unused_source_ids": 0
     },
     "mmmu": {
       "questions": 200,
       "unused_source_ids": 700
     },
-    "mmlu_pro": {
-      "questions": 300,
-      "unused_source_ids": 11732
-    },
-    "livecodebench": {
-      "questions": 100,
-      "unused_source_ids": 75
-    },
     "multimodalqa": {
       "questions": 100,
       "unused_source_ids": 880
-    },
-    "gpqa": {
-      "questions": 198,
-      "unused_source_ids": 0
     }
   },
-  "questions": 1202,
-  "public_code_tests": 260,
-  "private_code_tests": 3682,
-  "unique_input_images": 1481,
+  "questions": 498,
+  "unique_input_images": 1177,
   "smoke_questions": 200,
   "limitations": [
     "No model inference or benchmark scoring was performed.",
-    "Code test structures checked; reference/generated programs were not executed.",
-    "Small custom subsets are development evaluations, not full leaderboard scores."
+    "Custom subsets are development evaluations, not full leaderboard scores."
   ]
 }

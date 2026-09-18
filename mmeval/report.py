@@ -10,10 +10,7 @@ from .infer import parse_benchmarks
 
 
 GROUP_FIELDS = {
-    "mathvision": ("subject", "level"),
     "mmmu": ("subject", "difficulty"),
-    "mmlu_pro": ("category",),
-    "livecodebench": ("difficulty", "platform"),
     "multimodalqa": ("modality_composition", "question_type"),
     "gpqa": ("domain", "subdomain"),
 }

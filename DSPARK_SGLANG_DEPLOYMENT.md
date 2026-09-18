@@ -1,6 +1,6 @@
 # Qwen3.5-4B + DSpark + SGLang：单卡验收，双卡正式评测
 
-当前单张 RTX 4090 48GB 只用于环境验收：CUDA 13.0、Python 3.11、PyTorch 2.13.0、SGLang 0.5.19、Qwen3.5-4B target、公开 DSpark draft 和多模态请求都能工作。正式评测换成两张 RTX 4090 48GB，以 DP=2、TP=1 启动两个完整副本，使用 64K context；Harness 并发设为 4。DFlash2 不参与这套方案。
+单张 RTX 4090 48GB 和 RTX 4080 SUPER 32GB 均已用于环境验收：CUDA 13.0、Python 3.11、PyTorch 2.13.0、SGLang 0.5.19、Qwen3.5-4B target、公开 DSpark draft 和多模态请求都能工作。正式评测换成两张 RTX 4090 48GB，以 DP=2、TP=1 启动两个完整副本，使用 64K context；Harness 并发设为 4。DFlash2 不参与这套方案。
 
 ## 一键安装与验收
 
@@ -10,6 +10,8 @@
 cd /path/to/project
 export HF_HOME=/path/to/large-disk/huggingface
 bash scripts/validate_qwen35_4b_sglang_dspark_4090.sh
+# RTX 4080 SUPER 32GB 可改用：
+# bash scripts/validate_qwen35_4b_sglang_dspark_4080super.sh
 ```
 
 脚本将依次完成：
@@ -84,11 +86,10 @@ bash scripts/launch_qwen35_4b_sglang_dspark_dual.sh
 ```bash
 API_BASE=http://127.0.0.1:8000/v1 \
 MODEL=Qwen/Qwen3.5-4B \
-CONCURRENCY=4 \
-TOOLS=agentic \
-  bash scripts/run_full_eval.sh runs/qwen35-4b-dspark-baseline
+CONCURRENCY=4 TOOLS=local-vision \
+  bash scripts/run_full_eval.sh runs/qwen35-4b-gpqa-mmmu-mmqa-v1
 ```
 
-`TOOLS=agentic` 仍按数据集注册权限：只有 MultiModalQA 和 GPQA 获得联网搜索；LiveCodeBench、MathVision 等只获得各自的离线工具。联网工具需要 `SERPER_API_KEY`。若租用机确实没有 Docker/Podman，可在一次性、无密钥的机器上显式设置 `TOOL_EXECUTOR=local SCORE_EXECUTOR=local`；`uv` 只管理依赖，不能提供代码隔离。
+默认三组题目为 GPQA、MMMU、MultiModalQA。若单独设置 `TOOLS=agentic`，仍按数据集注册权限：只有 MultiModalQA 和 GPQA 获得联网搜索；MMMU 仅获得离线视觉工具。联网工具需要 `SERPER_API_KEY`。若租用机确实没有 Docker/Podman，可在一次性、无密钥的机器上显式设置 `TOOL_EXECUTOR=local`；`uv` 只管理依赖，不能提供代码隔离。
 
 正式训练前后保持 SGLang lock 文件、`model-revisions.json`、gamma、temperature、context、输出上限和并发一致。启动脚本会把锁定的两个 commit SHA 分别传给 `--revision` 和 `--speculative-draft-model-revision`。这样分数、思考轨迹、工具轨迹和 bad case 可以直接比较。

@@ -1,26 +1,14 @@
 {
-  "mathvision": {
-    "repo": "MathLLMs/MathVision",
-    "revision": "2837ddb3f13abaf6b3997c12d80753e5470bd46a"
+  "gpqa": {
+    "repo": "idavidrein/gpqa",
+    "revision": "56686c06f5e19865c153de0fdb11be3890014df7"
   },
   "mmmu": {
     "repo": "MMMU/MMMU",
     "revision": "98e6ac0cb9b7b2cd2c991b85a50762edc4aedc68"
   },
-  "mmlu_pro": {
-    "repo": "TIGER-Lab/MMLU-Pro",
-    "revision": "b189ec765aa7ed75c8acfea42df31fdae71f97be"
-  },
-  "livecodebench": {
-    "repo": "livecodebench/code_generation_lite",
-    "revision": "0fe84c3912ea0c4d4a78037083943e8f0c4dd505"
-  },
   "multimodalqa": {
     "repo": "allenai/multimodalqa",
     "revision": "4dd14328c6d02a4daa357cc6032915a0b14602e3"
-  },
-  "gpqa": {
-    "repo": "idavidrein/gpqa",
-    "revision": "56686c06f5e19865c153de0fdb11be3890014df7"
   }
 }

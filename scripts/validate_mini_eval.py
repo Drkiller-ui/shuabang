@@ -17,6 +17,17 @@ def local_path(relative):
     return path
 
 def main():
+    expected_questions = set(COUNTS) | {'all', 'smoke_200'}
+    actual_questions = {path.stem for path in (OUT / 'questions').glob('*.jsonl')}
+    require(actual_questions == expected_questions, f'Unexpected question files: {actual_questions ^ expected_questions}')
+    actual_references = {path.stem for path in (OUT / 'references').glob('*.jsonl')}
+    require(actual_references == set(COUNTS), f'Unexpected reference files: {actual_references ^ set(COUNTS)}')
+    actual_asset_dirs = {path.name for path in (OUT / 'assets').iterdir() if path.is_dir()}
+    require(actual_asset_dirs == {'mmmu', 'multimodalqa'}, f'Unexpected asset directories: {actual_asset_dirs}')
+    allowed_manifest_prefixes = set(COUNTS) | {'smoke_200', 'source_checksums', 'sources'}
+    require(all(path.name.split('.', 1)[0] in allowed_manifest_prefixes
+                for path in (OUT / 'manifests').iterdir() if path.is_file()),
+            'Unexpected benchmark manifest')
     totals = Counter()
     image_paths = set()
     all_ids = set()
@@ -49,26 +60,16 @@ def main():
                 with Image.open(path) as image:
                     image.verify()
                 image_paths.add(relative)
-            if name in {'mathvision', 'mmmu', 'multimodalqa'}:
+            if name in {'mmmu', 'multimodalqa'}:
                 require(bool(q['images']), f'No image: {q["id"]}')
-            if name in {'mathvision', 'mmmu', 'mmlu_pro', 'gpqa'}:
+            if name in {'mmmu', 'gpqa'}:
                 require(ref['answer'] is not None and str(ref['answer']).strip(), f'No answer: {q["id"]}')
                 if q['options'] and (name != 'mmmu' or q['metadata']['question_type'] == 'multiple-choice'):
                     require(ref['answer'] in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[:len(q['options'])], f'Bad MC answer: {q["id"]}')
-            if name == 'mmlu_pro':
-                require(ord(ref['answer']) - ord('A') == ref['answer_index'], 'MMLU answer mismatch')
             if name == 'gpqa':
                 require(len(q['options']) == 4, f'GPQA choice count: {q["id"]}')
                 require(ord(ref['answer']) - ord('A') == ref['answer_index'], 'GPQA answer mismatch')
                 require(q['options'][ref['answer_index']] == ref['answer_text'], 'GPQA shuffled answer mismatch')
-            if name == 'livecodebench':
-                tests = read_json(local_path(ref['tests_file']))
-                require(len(tests['public']) == ref['public_test_count'] > 0, 'Missing public tests')
-                require(len(tests['private']) == ref['private_test_count'] > 0, 'Missing private tests')
-                for case in tests['public'] + tests['private']:
-                    require({'input', 'output', 'testtype'} <= case.keys(), 'Malformed code test')
-                totals['public_code_tests'] += len(tests['public'])
-                totals['private_code_tests'] += len(tests['private'])
             if name == 'multimodalqa':
                 require(len(set(q['metadata']['modalities'])) >= 2, f'Not cross-modal: {q["id"]}')
                 require(q['metadata']['context_setting'] == 'official_full_context_with_distractors',
@@ -84,7 +85,7 @@ def main():
         totals['questions'] += len(rows)
     combined = read_jsonl(OUT / 'questions/all.jsonl')
     smoke = read_jsonl(OUT / 'questions/smoke_200.jsonl')
-    require(len(combined) == 1202 and {r['id'] for r in combined} == all_ids, 'Combined suite mismatch')
+    require(len(combined) == sum(COUNTS.values()) and {r['id'] for r in combined} == all_ids, 'Combined suite mismatch')
     combined_by_id = {r['id']: r for r in combined}
     require(len(smoke) == 200 and len({r['id'] for r in smoke}) == 200, 'Smoke size mismatch')
     require(all(r == combined_by_id.get(r['id']) for r in smoke), 'Smoke differs from main suite')
@@ -95,8 +96,7 @@ def main():
     report['unique_input_images'] = len(image_paths)
     report['smoke_questions'] = len(smoke)
     report['limitations'] = ['No model inference or benchmark scoring was performed.',
-                             'Code test structures checked; reference/generated programs were not executed.',
-                             'Small custom subsets are development evaluations, not full leaderboard scores.']
+                             'Custom subsets are development evaluations, not full leaderboard scores.']
     write_json(OUT / 'validation_report.json', report)
     print(json.dumps(report, ensure_ascii=False, indent=2))
 

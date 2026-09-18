@@ -18,7 +18,6 @@ from mmeval.answer import extract_choice, extract_final, math_equal
 from mmeval.client import Generation, split_reasoning
 from mmeval.common import read_json, read_jsonl, write_jsonl
 from mmeval.diagnostics import analyze_thinking
-from mmeval.execution import SandboxExecutor, extract_code
 from mmeval.infer import effective_tool_profile, run_inference
 from mmeval.prompts import build_user_content
 from mmeval.report import aggregate, make_report
@@ -43,7 +42,6 @@ class AnswerTests(unittest.TestCase):
         self.assertEqual(extract_choice("The answer is (J).", "ABCDEFGHIJ"), "J")
         self.assertIsNone(extract_choice("This looks good", "ABCD"))
         self.assertTrue(math_equal("0.5", "1/2"))
-        self.assertEqual(extract_code("text\n```python\nprint(1)\n```"), "print(1)")
 
     def test_thinking_diagnostics_detect_limit_loop_and_reopen(self):
         sentence = "This calculation repeats the same intermediate conclusion for no useful reason."
@@ -111,8 +109,12 @@ class PromptTests(unittest.TestCase):
 class DatasetTests(unittest.TestCase):
     def test_gpqa_diamond_is_complete_and_answer_mapping_is_consistent(self):
         suite = Path(__file__).resolve().parents[1] / "data/mini_eval_v1"
-        questions = read_jsonl(suite / "questions/gpqa.jsonl")
-        references = read_jsonl(suite / "references/gpqa.jsonl")
+        questions_path = suite / "questions/gpqa.jsonl"
+        references_path = suite / "references/gpqa.jsonl"
+        if not questions_path.exists() and not references_path.exists():
+            self.skipTest("GPQA source data is excluded from the public repository")
+        questions = read_jsonl(questions_path)
+        references = read_jsonl(references_path)
         self.assertEqual(len(questions), 198)
         self.assertEqual([q["id"] for q in questions], [r["id"] for r in references])
         for question, reference in zip(questions, references):
@@ -192,13 +194,13 @@ class InferenceTests(unittest.TestCase):
                 root = Path(temporary)
                 suite, run = root / "suite", root / "run"
                 question = {
-                    "id": "mmlu_pro:q1", "benchmark": "mmlu_pro", "question": "Q?",
+                    "id": "gpqa:q1", "benchmark": "gpqa", "question": "Q?",
                     "options": ["yes", "no"], "images": [], "metadata": {"category": "logic"},
                 }
-                write_jsonl(suite / "questions/mmlu_pro.jsonl", [question])
-                write_jsonl(suite / "references/mmlu_pro.jsonl", [{"id": "mmlu_pro:q1", "answer": "A"}])
+                write_jsonl(suite / "questions/gpqa.jsonl", [question])
+                write_jsonl(suite / "references/gpqa.jsonl", [{"id": "gpqa:q1", "answer": "A"}])
                 args = argparse.Namespace(
-                    suite=str(suite), run=str(run), benchmarks="mmlu_pro",
+                    suite=str(suite), run=str(run), benchmarks="gpqa",
                     api_base=f"http://127.0.0.1:{server.server_port}/v1", api_key_env="MISSING_KEY",
                     model="mock-model", concurrency=1, temperature=0.0, seed=1,
                     max_tokens=32, timeout=10.0, retries=1, limit=None,
@@ -206,20 +208,19 @@ class InferenceTests(unittest.TestCase):
                     extra_body_json='{"chat_template_kwargs":{"enable_thinking":true}}',
                 )
                 asyncio.run(run_inference(args))
-                record = read_jsonl(run / "responses/mmlu_pro.jsonl")[0]
+                record = read_jsonl(run / "responses/gpqa.jsonl")[0]
                 self.assertEqual(record["reasoning"], "visible trace")
                 self.assertEqual(record["answer"], "Final answer: A")
                 self.assertTrue(server.last_request["chat_template_kwargs"]["enable_thinking"])
                 asyncio.run(run_inference(args))
                 self.assertEqual(server.request_count, 1, "matching successful request should resume without regeneration")
                 score_run(argparse.Namespace(
-                    suite=str(suite), run=str(run), benchmarks="mmlu_pro", executor="local",
-                    container_image="unused", workers=1, problem_timeout=10.0,
-                    per_test_timeout=1.0, force=False, judge_api_base=args.api_base,
+                    suite=str(suite), run=str(run), benchmarks="gpqa",
+                    workers=1, force=False,
                 ))
-                make_report(argparse.Namespace(suite=str(suite), run=str(run), benchmarks="mmlu_pro"))
-                self.assertEqual(read_json(run / "summary.json")["benchmarks"]["mmlu_pro"]["accuracy"], 1.0)
-                self.assertEqual(read_jsonl(run / "results/mmlu_pro.jsonl")[0]["response"]["reasoning"], "visible trace")
+                make_report(argparse.Namespace(suite=str(suite), run=str(run), benchmarks="gpqa"))
+                self.assertEqual(read_json(run / "summary.json")["benchmarks"]["gpqa"]["accuracy"], 1.0)
+                self.assertEqual(read_jsonl(run / "results/gpqa.jsonl")[0]["response"]["reasoning"], "visible trace")
         finally:
             server.shutdown()
             server.server_close()
@@ -287,34 +288,14 @@ class InferenceTests(unittest.TestCase):
             server.server_close()
 
 
-class SandboxTests(unittest.TestCase):
-    def test_stdin_and_future_functional_code(self):
-        with tempfile.TemporaryDirectory() as temporary:
-            executor = SandboxExecutor("local", "unused", 10, Path(temporary))
-            stdin = executor.livecodebench({
-                "code": "a,b=map(int,input().split());print((a+b)**2)",
-                "tests": [{"input": "2 3", "output": "25", "testtype": "stdin"}],
-                "func_name": None, "per_test_timeout": 1,
-            }, "stdin")
-            self.assertTrue(stdin["ok"], stdin)
-            functional = executor.livecodebench({
-                "code": "from __future__ import annotations\nclass Solution:\n def add(self,a:int,b:int)->int:return a+b",
-                "tests": [{"input": "2\n3", "output": "5", "testtype": "functional"}],
-                "func_name": "add", "per_test_timeout": 1,
-            }, "functional")
-            self.assertTrue(functional["ok"], functional)
-
-
 class AgentToolTests(unittest.TestCase):
     def test_benchmark_policy_registers_network_search_only_for_mmqa_and_gpqa(self):
         profiles = {
             name: effective_tool_profile(name, "agentic")
-            for name in ("mathvision", "mmmu", "mmlu_pro", "livecodebench", "multimodalqa", "gpqa")
+            for name in ("gpqa", "mmmu", "multimodalqa")
         }
         self.assertEqual(profiles, {
-            "mathvision": "local-vision-python", "mmmu": "local-vision",
-            "mmlu_pro": "none", "livecodebench": "python",
-            "multimodalqa": "agentic", "gpqa": "agentic",
+            "gpqa": "agentic", "mmmu": "local-vision", "multimodalqa": "agentic",
         })
 
     def test_offline_python_registry_excludes_every_network_tool(self):
@@ -491,30 +472,30 @@ class ReportTests(unittest.TestCase):
             root = Path(temporary)
             suite, run = root / "suite", root / "run"
             question = {
-                "id": "mmlu_pro:q1", "benchmark": "mmlu_pro", "question": "Q?",
+                "id": "gpqa:q1", "benchmark": "gpqa", "question": "Q?",
                 "options": ["yes", "no"], "images": [], "metadata": {"category": "logic"},
             }
-            reference = {"id": "mmlu_pro:q1", "answer": "A"}
-            response = {"id": "mmlu_pro:q1", "status": "ok", "reasoning": "trace", "answer": "B",
+            reference = {"id": "gpqa:q1", "answer": "A"}
+            response = {"id": "gpqa:q1", "status": "ok", "reasoning": "trace", "answer": "B",
                         "thinking_diagnostics": {"flagged": True, "loop_detected": True,
                                                  "truncated_at_token_limit": False,
                                                  "answer_then_reopen": False,
                                                  "continued_long_after_final_answer": False}}
             score = {
-                "id": "mmlu_pro:q1", "benchmark": "mmlu_pro", "correct": False,
+                "id": "gpqa:q1", "benchmark": "gpqa", "correct": False,
                 "metadata": question["metadata"], "model_trace": response,
             }
-            write_jsonl(suite / "questions/mmlu_pro.jsonl", [question])
-            write_jsonl(suite / "references/mmlu_pro.jsonl", [reference])
-            write_jsonl(run / "responses/mmlu_pro.jsonl", [response])
-            write_jsonl(run / "scores/mmlu_pro.jsonl", [score])
-            make_report(argparse.Namespace(suite=str(suite), run=str(run), benchmarks="mmlu_pro"))
-            badcase = read_jsonl(run / "badcases/mmlu_pro.jsonl")[0]
+            write_jsonl(suite / "questions/gpqa.jsonl", [question])
+            write_jsonl(suite / "references/gpqa.jsonl", [reference])
+            write_jsonl(run / "responses/gpqa.jsonl", [response])
+            write_jsonl(run / "scores/gpqa.jsonl", [score])
+            make_report(argparse.Namespace(suite=str(suite), run=str(run), benchmarks="gpqa"))
+            badcase = read_jsonl(run / "badcases/gpqa.jsonl")[0]
             self.assertEqual(badcase["response"]["reasoning"], "trace")
             self.assertEqual(badcase["reference"]["answer"], "A")
-            self.assertEqual(read_json(run / "summary.json")["benchmarks"]["mmlu_pro"]["accuracy"], 0.0)
-            self.assertEqual(len(read_jsonl(run / "results/mmlu_pro.jsonl")), 1)
-            self.assertEqual(len(read_jsonl(run / "thinking_cases/mmlu_pro.jsonl")), 1)
+            self.assertEqual(read_json(run / "summary.json")["benchmarks"]["gpqa"]["accuracy"], 0.0)
+            self.assertEqual(len(read_jsonl(run / "results/gpqa.jsonl")), 1)
+            self.assertEqual(len(read_jsonl(run / "thinking_cases/gpqa.jsonl")), 1)
 
 
 if __name__ == "__main__":

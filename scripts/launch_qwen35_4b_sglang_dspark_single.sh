@@ -5,6 +5,8 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
 VENV_DIR="${VENV_DIR:-.venv-dspark}"
+# SGLang JIT kernels spawn ninja; include the venv's console scripts in PATH.
+export PATH="$PROJECT_ROOT/$VENV_DIR/bin:$PATH"
 MODEL="${MODEL:-Qwen/Qwen3.5-4B}"
 DRAFT_MODEL="${DRAFT_MODEL:-shanjiaz/qwen3_5_4b_perfectblend_regen_dspark}"
 REVISION_LOCK="${REVISION_LOCK:-environment-dspark-model-revisions.json}"
@@ -70,7 +72,9 @@ for index in range(actual_count):
     memory_mib = props.total_memory // 1024**2
     print(f"GPU {index}: {props.name}, {memory_mib} MiB")
     if expected_name not in props.name.lower():
-        raise SystemExit(f"GPU {index} is not an RTX 4090: {props.name}")
+        raise SystemExit(
+            f"GPU {index} name does not contain {expected_name!r}: {props.name}"
+        )
     if memory_mib < minimum_mib and not allow_low_vram:
         raise SystemExit(
             f"GPU {index} has {memory_mib} MiB; target+draft requires "
@@ -79,6 +83,12 @@ for index in range(actual_count):
 PY
 
 "$VENV_DIR/bin/python" scripts/patch_sglang_qwen35_last_layer.py --check
+
+DRAFT_COMPAT_DIR="${DRAFT_COMPAT_DIR:-.cache/dspark-draft-compat}"
+"$VENV_DIR/bin/python" scripts/prepare_qwen35_dspark_draft.py \
+  --repo "$DRAFT_MODEL" \
+  --revision "$DRAFT_MODEL_REVISION" \
+  --output "$DRAFT_COMPAT_DIR"
 
 export SGLANG_RAGGED_VERIFY_MODE="${SGLANG_RAGGED_VERIFY_MODE:-compact}"
 
@@ -105,7 +115,7 @@ exec "$VENV_DIR/bin/python" -m sglang.launch_server \
   --reasoning-parser qwen3 \
   --limit-mm-data-per-request '{"image":16}' \
   --speculative-algorithm DSPARK \
-  --speculative-draft-model-path "$DRAFT_MODEL" \
+  --speculative-draft-model-path "$DRAFT_COMPAT_DIR" \
   --speculative-draft-model-revision "$DRAFT_MODEL_REVISION" \
   --speculative-dspark-block-size "$DSPARK_BLOCK_SIZE" \
   "${EXTRA_ARGS[@]}"

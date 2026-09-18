@@ -2,25 +2,25 @@
   "name": "mini_eval_v1",
   "schema_version": 1,
   "seed": 20260916,
-  "total": 1202,
+  "total": 498,
   "purpose": "fixed development evaluation",
   "benchmarks": {
-    "mathvision": {
-      "count": 304,
-      "smoke_count": 51,
+    "gpqa": {
+      "count": 198,
+      "smoke_count": 80,
       "source": {
-        "repo": "MathLLMs/MathVision",
-        "revision": "2837ddb3f13abaf6b3997c12d80753e5470bd46a",
-        "split": "testmini",
-        "config": null
+        "repo": "idavidrein/gpqa",
+        "revision": "56686c06f5e19865c153de0fdb11be3890014df7",
+        "split": "gpqa_diamond",
+        "config": "diamond"
       },
-      "image_count": 304,
-      "question_file": "questions/mathvision.jsonl",
-      "reference_file": "references/mathvision.jsonl"
+      "image_count": 0,
+      "question_file": "questions/gpqa.jsonl",
+      "reference_file": "references/gpqa.jsonl"
     },
     "mmmu": {
       "count": 200,
-      "smoke_count": 33,
+      "smoke_count": 80,
       "source": {
         "repo": "MMMU/MMMU",
         "revision": "98e6ac0cb9b7b2cd2c991b85a50762edc4aedc68",
@@ -31,35 +31,9 @@
       "question_file": "questions/mmmu.jsonl",
       "reference_file": "references/mmmu.jsonl"
     },
-    "mmlu_pro": {
-      "count": 300,
-      "smoke_count": 50,
-      "source": {
-        "repo": "TIGER-Lab/MMLU-Pro",
-        "revision": "b189ec765aa7ed75c8acfea42df31fdae71f97be",
-        "split": "test",
-        "config": null
-      },
-      "image_count": 0,
-      "question_file": "questions/mmlu_pro.jsonl",
-      "reference_file": "references/mmlu_pro.jsonl"
-    },
-    "livecodebench": {
-      "count": 100,
-      "smoke_count": 17,
-      "source": {
-        "repo": "livecodebench/code_generation_lite",
-        "revision": "0fe84c3912ea0c4d4a78037083943e8f0c4dd505",
-        "split": "test",
-        "config": "v6"
-      },
-      "image_count": 0,
-      "question_file": "questions/livecodebench.jsonl",
-      "reference_file": "references/livecodebench.jsonl"
-    },
     "multimodalqa": {
       "count": 100,
-      "smoke_count": 16,
+      "smoke_count": 40,
       "source": {
         "repo": "allenai/multimodalqa",
         "revision": "4dd14328c6d02a4daa357cc6032915a0b14602e3",
@@ -69,19 +43,6 @@
       "image_count": 979,
       "question_file": "questions/multimodalqa.jsonl",
       "reference_file": "references/multimodalqa.jsonl"
-    },
-    "gpqa": {
-      "count": 198,
-      "smoke_count": 33,
-      "source": {
-        "repo": "idavidrein/gpqa",
-        "revision": "56686c06f5e19865c153de0fdb11be3890014df7",
-        "split": "gpqa_diamond",
-        "config": "diamond"
-      },
-      "image_count": 0,
-      "question_file": "questions/gpqa.jsonl",
-      "reference_file": "references/gpqa.jsonl"
     }
   },
   "smoke_total": 200
